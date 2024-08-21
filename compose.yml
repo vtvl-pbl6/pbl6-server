@@ -1,0 +1,73 @@
+services:
+  # Spring application
+  application:
+    container_name: server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${SPRING_DATASOURCE_HOST}:${SPRING_DATASOURCE_PORT}/${SPRING_DATASOURCE_NAME}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - SPRING_REDIS_HOST=${SPRING_REDIS_HOST}
+      - SPRING_REDIS_PORT=${SPRING_REDIS_PORT}
+      - SPRING_REDIS_USERNAME=${SPRING_REDIS_USERNAME}
+      - SPRING_REDIS_PASSWORD=${SPRING_REDIS_PASSWORD}
+      - SPRING_REDIS_SSL_ENABLED=${SPRING_REDIS_SSL_ENABLED}
+      - JWT_ACCESS_TOKEN_EXPIRATION_MS=${JWT_ACCESS_TOKEN_EXPIRATION_MS}
+      - JWT_REFRESH_TOKEN_EXPIRATION_MS=${JWT_REFRESH_TOKEN_EXPIRATION_MS}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - API_HEADER_NAME=${API_HEADER_NAME}
+      - API_HEADER_VALUE=${API_HEADER_VALUE}
+    env_file:
+      - .env
+    networks:
+      - pbl6-docker-network
+  #  Postgres database service
+  postgres:
+    image: postgres:15
+    container_name: db-postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    env_file:
+      - .env
+    ports:
+      - "6002:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/initial_data.sql:/docker-entrypoint-initdb.d/initial_data.sql
+    networks:
+      - pbl6-docker-network
+  #  Redis database service
+  redis:
+    image: redis:6.2-alpine
+    container_name: db-redis
+    restart: always
+    ports:
+      - "6003:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - pbl6-docker-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  pbl6-docker-network:
+    name: pbl6-docker-network
+    driver: bridge
