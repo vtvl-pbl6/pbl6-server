@@ -1,0 +1,56 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  datasource:
+    url: jdbc:postgresql://${SPRING_DATASOURCE_HOST}:${SPRING_DATASOURCE_PORT}/${SPRING_DATASOURCE_NAME}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy # Apply CamelCase to Underscores field naming in database
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+      ddl-auto: none
+    show-sql: true
+    properties.hibernate.format_sql: true
+    database: postgresql
+    open-in-view: false # Disable OpenEntityManagerInView
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST}
+      port: ${SPRING_REDIS_PORT}
+      username: ${SPRING_REDIS_USERNAME}
+      password: ${SPRING_REDIS_PASSWORD}
+      ssl.enabled: ${SPRING_REDIS_SSL_ENABLED}
+      jedis:
+        pool:
+          enabled: true
+          max-active: 16
+          max-idle: 16
+          min-idle: 8
+          max-wait: 1800 # 30 minutes
+
+# Custom properties
+application:
+  profile: ${SPRING_PROFILES_ACTIVE}
+  api-key:
+    header-name: ${API_HEADER_NAME}
+    header-value: ${API_HEADER_VALUE}
+  jwt:
+    access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS}
+    refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRATION_MS}
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME}
+    api-key: ${CLOUDINARY_API_KEY}
+    api-secret: ${CLOUDINARY_API_SECRET}
