@@ -7,4 +7,6 @@ public interface AuthService {
     CredentialResponse login(LoginRequest loginRequest, boolean isAdmin);
 
     void initDefaultAccount();
+
+    void deleteAllExpiredRefreshTokens();
 }
