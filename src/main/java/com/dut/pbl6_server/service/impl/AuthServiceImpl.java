@@ -6,6 +6,7 @@ import com.dut.pbl6_server.common.exception.ForbiddenException;
 import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.config.auth.JwtUtils;
 import com.dut.pbl6_server.dto.request.LoginRequest;
+import com.dut.pbl6_server.dto.request.RefreshTokenRequest;
 import com.dut.pbl6_server.dto.respone.CredentialResponse;
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.RefreshToken;
@@ -60,12 +61,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void initDefaultAccount() {
-        accountsRepository.save(Account.builder()
-            .email("test@gmail.com")
-            .password(passwordEncoder.encode("123456Aa"))
-            .role(AccountRole.ADMIN)
-            .build());
+    public CredentialResponse refreshToken(RefreshTokenRequest refreshTokenRequest, boolean isAdmin) {
+        return jwtUtils.refreshToken(refreshTokenRequest.getRefreshToken(), isAdmin);
     }
 
     @Override
