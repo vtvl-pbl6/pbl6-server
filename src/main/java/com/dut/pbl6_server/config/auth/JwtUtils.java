@@ -52,9 +52,12 @@ public class JwtUtils {
             .build();
     }
 
-    public CredentialResponse refreshToken(String refreshToken) {
+    public CredentialResponse refreshToken(String refreshToken, boolean isAdmin) {
         Claims jwtClaims = getJwtClaims(refreshToken, "refresh");
         Long accountId = Long.parseLong(jwtClaims.getSubject());
+        // Check if the user is an admin
+        if (!accountRepository.isAdministrator(accountId) && isAdmin)
+            throw new ForbiddenException(ErrorMessageConstants.FORBIDDEN);
         var accountRefreshTokens = refreshTokenRepository.findAllByAccountId(accountId);
         // Check if list refresh token is empty or null
         if (CommonUtils.List.isEmptyOrNull(accountRefreshTokens))

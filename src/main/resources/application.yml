@@ -40,6 +40,10 @@ spring:
           max-idle: 16
           min-idle: 8
           max-wait: 1800 # 30 minutes
+  task:
+    scheduling:
+      pool:
+        size: 10
 
 # Custom properties
 application:

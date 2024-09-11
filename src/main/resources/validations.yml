@@ -11,3 +11,10 @@ login_request:
     password_validation:
       code: VAL_LOG0103
       message: Password is required. It must be between 8 and 32 characters, containing at least 1 uppercase letter, 1 lowercase letter, 1 numeric character.
+
+# RefreshTokenRequest
+refresh_token_request:
+  refreshToken:
+    not_blank_string_validation:
+      code: VAL_REF0101
+      message: Refresh token cannot be blank

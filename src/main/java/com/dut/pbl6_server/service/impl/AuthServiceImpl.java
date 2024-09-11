@@ -3,8 +3,10 @@ package com.dut.pbl6_server.service.impl;
 import com.dut.pbl6_server.common.constant.ErrorMessageConstants;
 import com.dut.pbl6_server.common.exception.BadRequestException;
 import com.dut.pbl6_server.common.exception.ForbiddenException;
+import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.config.auth.JwtUtils;
 import com.dut.pbl6_server.dto.request.LoginRequest;
+import com.dut.pbl6_server.dto.request.RefreshTokenRequest;
 import com.dut.pbl6_server.dto.respone.CredentialResponse;
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.RefreshToken;
@@ -13,11 +15,15 @@ import com.dut.pbl6_server.repository.jpa.AccountsRepository;
 import com.dut.pbl6_server.repository.jpa.RefreshTokensRepository;
 import com.dut.pbl6_server.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +34,9 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AccountsRepository accountsRepository;
 
+    @Value("${application.jwt.refresh-token-expiration-ms}")
+    private Long refreshTokenExpirationMs;
+    private static final int BATCH_SIZE = 5000;
 
     public CredentialResponse login(LoginRequest loginRequest, boolean isAdmin) {
         try {
@@ -52,11 +61,19 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void initDefaultAccount() {
-        accountsRepository.save(Account.builder()
-            .email("test@gmail.com")
-            .password(passwordEncoder.encode("123456Aa"))
-            .role(AccountRole.ADMIN)
-            .build());
+    public CredentialResponse refreshToken(RefreshTokenRequest refreshTokenRequest, boolean isAdmin) {
+        return jwtUtils.refreshToken(refreshTokenRequest.getRefreshToken(), isAdmin);
+    }
+
+    @Override
+    public void deleteAllExpiredRefreshTokens() {
+        var pageRequest = PageRequest.of(0, BATCH_SIZE);
+        var expiredRefreshTokens = refreshTokensRepository.findAllExpired(pageRequest).stream().filter(e -> {
+            var currentTime = CommonUtils.DateTime.getCurrentTimestamp();
+            var duration = Duration.between(e.getCreatedAt().toInstant(), currentTime.toInstant());
+            return duration.toMillis() >= refreshTokenExpirationMs;
+        }).toList();
+        if (CommonUtils.List.isNotEmptyOrNull(expiredRefreshTokens))
+            refreshTokensRepository.deleteAll(expiredRefreshTokens);
     }
 }
