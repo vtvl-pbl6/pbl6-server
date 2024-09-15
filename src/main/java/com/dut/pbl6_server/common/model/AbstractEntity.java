@@ -1,8 +1,6 @@
 package com.dut.pbl6_server.common.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,7 +22,12 @@ import java.sql.Timestamp;
 public abstract class AbstractEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = 7156526077883281623L;
-    @Column(updatable = false)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(updatable = false, nullable = false)
     @CreationTimestamp
     private Timestamp createdAt;
     @UpdateTimestamp

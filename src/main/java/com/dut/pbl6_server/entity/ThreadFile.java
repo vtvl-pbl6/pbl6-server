@@ -14,12 +14,13 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "refresh_tokens")
-public class RefreshToken extends AbstractEntity {
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", nullable = false)
-    private Account account;
+@Table(name = "thread_files")
+public class ThreadFile extends AbstractEntity {
+    @ManyToOne
+    @JoinColumn(name = "thread_id", nullable = false)
+    private Thread thread;
 
-    @Column(nullable = false)
-    private String token;
+    @OneToOne
+    @JoinColumn(name = "file_id", nullable = false, unique = true)
+    private File file;
 }
