@@ -1,6 +1,10 @@
 package com.dut.pbl6_server.repository.fetch_data;
 
-import com.dut.pbl6_server.repository.fetch_data.base.*;
+import com.dut.pbl6_server.repository.fetch_data.base.FetchBaseRepository;
+import com.dut.pbl6_server.repository.fetch_data.base.custom_model.WhereElement;
+import com.dut.pbl6_server.repository.fetch_data.base.custom_model.WhereFieldOperator;
+import com.dut.pbl6_server.repository.fetch_data.base.custom_model.WhereLogical;
+import com.dut.pbl6_server.repository.fetch_data.base.custom_model.WhereOperator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;

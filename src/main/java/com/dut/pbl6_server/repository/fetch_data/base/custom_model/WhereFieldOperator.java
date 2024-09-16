@@ -1,4 +1,4 @@
-package com.dut.pbl6_server.repository.fetch_data.base;
+package com.dut.pbl6_server.repository.fetch_data.base.custom_model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
