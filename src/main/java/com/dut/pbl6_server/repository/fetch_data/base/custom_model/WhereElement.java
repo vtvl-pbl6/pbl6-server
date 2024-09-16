@@ -1,4 +1,4 @@
-package com.dut.pbl6_server.repository.fetch_data.base;
+package com.dut.pbl6_server.repository.fetch_data.base.custom_model;
 
 import lombok.*;
 
@@ -14,7 +14,8 @@ public class WhereElement {
     private Object value;
     private WhereOperator operator;
     private List<WhereFieldOperator> fieldOperator;
-    private WhereLogical logical;
+    @Builder.Default
+    private WhereLogical logical = WhereLogical.AND;
 
     public WhereElement(String key, Object value, WhereOperator operator) {
         this.key = key;

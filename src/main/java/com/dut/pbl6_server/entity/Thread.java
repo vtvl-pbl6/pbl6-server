@@ -23,7 +23,7 @@ public class Thread extends AbstractEntity {
     @JoinColumn(name = "author_id", nullable = false)
     private Account author;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_thread_id")
     private Thread parentThread;
 
@@ -54,12 +54,12 @@ public class Thread extends AbstractEntity {
     //
     // Relationships
     //
-    @OneToMany(mappedBy = "parentThread", fetch = FetchType.LAZY)
-    private List<Thread> comments;
-
     @OneToMany(mappedBy = "thread", fetch = FetchType.LAZY)
     private List<ThreadFile> files;
 
     @OneToMany(mappedBy = "thread", fetch = FetchType.LAZY)
     private List<ThreadSharer> sharers;
+
+    @OneToMany(mappedBy = "parentThread", fetch = FetchType.LAZY)
+    private List<Thread> comments;
 }

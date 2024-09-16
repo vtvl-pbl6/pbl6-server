@@ -78,12 +78,6 @@ public class Account extends AbstractEntity implements UserDetails {
     // Relationships
     //
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<ThreadSharer> sharedThreads;
-
-    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
-    private List<Thread> threads;
-
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Follower> followers; // 'followers' are the users who follow this user
 
     @OneToMany(mappedBy = "follower", fetch = FetchType.LAZY)
