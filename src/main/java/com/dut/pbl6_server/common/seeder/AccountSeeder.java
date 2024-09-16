@@ -21,21 +21,22 @@ public class AccountSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         final String passwordHash = passwordEncoder.encode("123456Aa");
-        
+
         // User account
         var userEmail = "user@gmail.com";
         if (!repository.existsByEmail(userEmail)) {
             var userAccount = Account.builder()
                 .email(userEmail)
-                .address("Viet Nam")
-                .fullName("Customer")
                 .password(passwordHash)
+                .firstName("Vinh")
+                .lastName("Pham")
                 .role(AccountRole.USER)
+                .displayName("vinhthanh.73")
                 .build();
             try {
                 repository.save(userAccount);
             } catch (Exception e) {
-                log.error("Error seeding customer account: {}", e.getMessage());
+                log.error("Error seeding user account: {}", e.getMessage());
             }
         }
 
@@ -44,10 +45,11 @@ public class AccountSeeder implements CommandLineRunner {
         if (!repository.existsByEmail(adminEmail)) {
             var adminAccount = Account.builder()
                 .email(adminEmail)
-                .address("Viet Nam")
-                .fullName("Admin")
                 .password(passwordHash)
+                .firstName("Admin")
+                .lastName("PBL6")
                 .role(AccountRole.ADMIN)
+                .displayName("admin.pbl6")
                 .build();
             try {
                 repository.save(adminAccount);

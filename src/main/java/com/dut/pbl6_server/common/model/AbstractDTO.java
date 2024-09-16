@@ -12,6 +12,8 @@ import java.sql.Timestamp;
 @SuperBuilder
 @NoArgsConstructor
 public class AbstractDTO {
+    private Long id;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private Timestamp deletedAt;
 }

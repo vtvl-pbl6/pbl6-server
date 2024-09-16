@@ -1,6 +1,8 @@
 package com.dut.pbl6_server.repository.fetch_data.base;
 
 import com.dut.pbl6_server.common.util.CommonUtils;
+import com.dut.pbl6_server.repository.fetch_data.base.custom_model.WhereElement;
+import com.dut.pbl6_server.repository.fetch_data.base.custom_model.WhereFieldOperator;
 import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,9 +18,19 @@ public interface FetchBaseRepository<T> {
 
     EntityManager getEntityManager();
 
-    List<T> fetchAllDataWithoutPagination(List<WhereElement> whereElements, Sort sort, String... relationships);
+    Object fetchAllDataImplementation(List<WhereElement> whereElements, Sort sort, Pageable pageable);
 
-    Page<T> fetchAllDataWithPagination(List<WhereElement> whereElements, Pageable pageable, String... relationships);
+    @SuppressWarnings("unchecked")
+    default List<T> fetchAllDataWithoutPagination(List<WhereElement> whereElements, Sort sort) {
+        Object result = fetchAllDataImplementation(whereElements, sort, null);
+        return result instanceof List<?> ? (List<T>) result : null;
+    }
+
+    @SuppressWarnings("unchecked")
+    default Page<T> fetchAllDataWithPagination(List<WhereElement> whereElements, Pageable pageable) {
+        Object result = fetchAllDataImplementation(whereElements, null, pageable);
+        return result instanceof Page<?> ? (Page<T>) result : null;
+    }
 
     default Long countData(List<WhereElement> whereElements) {
         String countResultHql = String.format("SELECT COUNT(tmp) FROM %s tmp %s", getEntityName(), getWhereClause(whereElements, "tmp"));
@@ -41,7 +53,7 @@ public interface FetchBaseRepository<T> {
         if (whereElements != null) {
             int count = 1;
             for (WhereElement e : whereElements)
-                if (e.getOperator().isNotNeedParamType())
+                if (!e.getOperator().isNotNeedParamType())
                     query.setParameter(count++, e.getValue());
         }
 
