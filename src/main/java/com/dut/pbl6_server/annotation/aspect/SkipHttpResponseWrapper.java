@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface TrackTime {
-    // This annotation is used to track the time taken to execute a method
+public @interface SkipHttpResponseWrapper {
+    // This annotation is used to skip the response entity wrapper in the ResponseEntityAspect
 }

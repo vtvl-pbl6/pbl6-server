@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ResponseEntityAspect {
 
-    @Pointcut("execution(* com.dut.pbl6_server.controller.*.*(..))")
+    @Pointcut("execution(* com.dut.pbl6_server.controller.*.*(..)) && !@annotation(com.dut.pbl6_server.annotation.aspect.SkipHttpResponseWrapper)")
     public void controller() {
     }
 

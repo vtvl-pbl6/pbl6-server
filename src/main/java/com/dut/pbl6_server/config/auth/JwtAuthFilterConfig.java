@@ -9,7 +9,6 @@ import com.dut.pbl6_server.common.model.ErrorResponse;
 import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.common.util.ErrorUtils;
 import com.dut.pbl6_server.entity.Account;
-import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,12 +35,14 @@ public class JwtAuthFilterConfig extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
 
     @Override
-    protected void doFilterInternal(
-        @Nonnull HttpServletRequest request,
-        @Nonnull HttpServletResponse response,
-        @Nonnull FilterChain filterChain
-    ) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
+            // Allow if the request is from web socket
+            if (request.getRequestURI().startsWith("/ws")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             // Check API key
             final String apiKey = request.getHeader(apiKeyHeader);
             if (CommonUtils.String.isEmptyOrNull(apiKey))

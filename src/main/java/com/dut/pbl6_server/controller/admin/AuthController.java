@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController("AdminAuthController")
-@RequestMapping("/v1/admin/auth")
+@RequestMapping("/api/v1/admin/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
