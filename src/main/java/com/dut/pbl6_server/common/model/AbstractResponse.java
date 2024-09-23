@@ -1,12 +1,16 @@
 package com.dut.pbl6_server.common.model;
 
 import com.dut.pbl6_server.annotation.json.JsonSnakeCaseNaming;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @JsonSnakeCaseNaming
 public class AbstractResponse {
