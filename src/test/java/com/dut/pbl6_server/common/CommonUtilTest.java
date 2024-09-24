@@ -1,35 +1,10 @@
 package com.dut.pbl6_server.common;
 
-import com.dut.pbl6_server.common.constant.CommonConstants;
 import com.dut.pbl6_server.common.util.CommonUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-
 public class CommonUtilTest {
-    @Test
-    void getValueFromYAMLFile_ValidFile_ReturnsMap() {
-        // Act
-        Map<String, Object> result = CommonUtils.getValueFromYAMLFile(CommonConstants.VALIDATION_YML_FILE);
-
-        // Assert
-        Assertions.assertNotNull(result);
-    }
-
-    @Test
-    void getValueFromYAMLFile_FileNotFound_ReturnsEmptyMap() {
-        // Arrange
-        String invalidYamlFile = "invalid-config.yaml";
-
-        // Act
-        Map<String, Object> result = CommonUtils.getValueFromYAMLFile(invalidYamlFile);
-
-        // Assert
-        Assertions.assertNotNull(result);
-        Assertions.assertTrue(result.isEmpty(), "Result should be an empty map for non-existent file.");
-    }
-
     @Test
     void stringToEnum_ValidString_ReturnsEnum() {
         // Arrange

@@ -1,0 +1,20 @@
+# LoginRequest
+login_request:
+  email:
+    not_blank:
+      code: VAL_LOG0101
+      message: Email không được để trống
+    email:
+      code: VAL_LOG0102
+      message: Email phải là một địa chỉ email hợp lệ
+  password:
+    password_validation:
+      code: VAL_LOG0103
+      message: Mật khẩu là bắt buộc. Mật khẩu phải từ 8 đến 32 ký tự, chứa ít nhất 1 chữ cái viết hoa, 1 chữ cái viết thường, 1 ký tự số.
+
+# RefreshTokenRequest
+refresh_token_request:
+  refreshToken:
+    not_blank_string_validation:
+      code: VAL_REF0101
+      message: Refresh token không được để trống

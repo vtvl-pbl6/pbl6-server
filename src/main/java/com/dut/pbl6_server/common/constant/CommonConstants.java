@@ -9,8 +9,6 @@ public final class CommonConstants {
     /*
      * File path
      */
-    public static final String ERROR_YML_FILE = "errors.yml";
-    public static final String VALIDATION_YML_FILE = "validations.yml";
     public static final String ACCESS_TOKEN_PRIVATE_KEY_FILE = "secret/access_token_private_key.der";
     public static final String ACCESS_TOKEN_PUBLIC_KEY_FILE = "secret/access_token_public_key.der";
     public static final String REFRESH_TOKEN_PRIVATE_KEY_FILE = "secret/refresh_token_private_key.der";

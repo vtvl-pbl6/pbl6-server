@@ -8,6 +8,7 @@ import com.dut.pbl6_server.common.model.AbstractResponse;
 import com.dut.pbl6_server.common.model.ErrorResponse;
 import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.common.util.ErrorUtils;
+import com.dut.pbl6_server.common.util.I18nUtils;
 import com.dut.pbl6_server.entity.Account;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -65,6 +66,9 @@ public class JwtAuthFilterConfig extends OncePerRequestFilter {
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
             authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+            // Set current language
+            I18nUtils.setLanguage(userDetails.getLanguage());
 
             filterChain.doFilter(request, response);
         } catch (ForbiddenException | UnauthorizedException ex) {

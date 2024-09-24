@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.ClassPathResource;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
 import java.security.KeyFactory;
@@ -244,19 +243,6 @@ public final class CommonUtils {
         }
 
         private OTP() {
-        }
-    }
-
-    /*
-     * YAML file util
-     */
-    public static Map<java.lang.String, Object> getValueFromYAMLFile(java.lang.String nameFile) {
-        Yaml yaml = new Yaml();
-        try {
-            InputStream inputStream = new ClassPathResource(nameFile).getInputStream();
-            return yaml.load(inputStream);
-        } catch (Exception e) {
-            return Map.of();
         }
     }
 
