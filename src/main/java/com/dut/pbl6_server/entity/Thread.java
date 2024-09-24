@@ -44,7 +44,7 @@ public class Thread extends AbstractEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)
-    private ThreadStatus status = ThreadStatus.ACTIVE;
+    private ThreadStatus status = ThreadStatus.CREATING;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
