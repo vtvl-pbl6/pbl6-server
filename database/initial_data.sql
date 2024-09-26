@@ -20,15 +20,16 @@ create type thread_status as enum ('CREATING', 'CREATE_DONE', 'PENDING', 'HIDE')
 -- File table
 create table if not exists files
 (
-    id         bigserial
+    id          bigserial
         primary key,
-    name       varchar(400)                        not null,
-    url        varchar(400)                        not null,
-    size       integer                             not null,
-    mime_type  varchar(255)                        not null,
-    created_at timestamp default CURRENT_TIMESTAMP not null,
-    updated_at timestamp,
-    deleted_at timestamp
+    name        varchar(400)                        not null,
+    url         varchar(400)                        not null,
+    size        integer                             not null,
+    mime_type   varchar(255)                        not null,
+    nsfw_result jsonb,
+    created_at  timestamp default CURRENT_TIMESTAMP not null,
+    updated_at  timestamp,
+    deleted_at  timestamp
 );
 
 -- Account table
@@ -113,6 +114,7 @@ create table if not exists threads
     parent_thread_id bigint
         references threads(id) on delete cascade,
     content          text,
+    hos_result       jsonb,
     reaction_num     integer       default 0                         not null,
     shared_num       integer       default 0                         not null,
     is_pin           boolean       default false                     not null,
