@@ -45,6 +45,11 @@ public final class ErrorMessageConstants {
     public static final String ACCOUNT_IS_DISABLED = "account_is_disabled";
     public static final String ACCOUNT_ID_IS_REQUIRED = "account_id_is_required";
 
+    /**
+     * Thread
+     */
+    public static final String THREAD_NOT_FOUND = "thread_not_found";
+
     private ErrorMessageConstants() {
     }
 }

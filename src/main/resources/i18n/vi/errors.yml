@@ -100,3 +100,8 @@ file_not_found:
 delete_file_failed:
   code: ERR_FIL0103
   message: Xóa tệp thất bại!
+
+# Thread
+thread_not_found:
+  code: ERR_THR0101
+  message: Không tìm thấy bài viết hợp lệ!
