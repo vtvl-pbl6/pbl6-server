@@ -3,10 +3,13 @@ package com.dut.pbl6_server.entity;
 import com.dut.pbl6_server.common.model.AbstractEntity;
 import com.dut.pbl6_server.entity.enums.ThreadStatus;
 import com.dut.pbl6_server.entity.enums.Visibility;
+import com.dut.pbl6_server.entity.json.HosResult;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.Type;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.util.List;
@@ -29,6 +32,9 @@ public class Thread extends AbstractEntity {
 
     private String content;
 
+    @Type(JsonBinaryType.class)
+    private List<HosResult> hosResult;
+
     @Column(nullable = false)
     @Builder.Default
     private int reactionNum = 0;
@@ -44,11 +50,13 @@ public class Thread extends AbstractEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Builder.Default
     private ThreadStatus status = ThreadStatus.CREATING;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Builder.Default
     private Visibility visibility = Visibility.PUBLIC;
 
     //

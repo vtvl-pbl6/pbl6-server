@@ -100,3 +100,23 @@ file_not_found:
 delete_file_failed:
   code: ERR_FIL0103
   message: Xóa tệp thất bại!
+
+# Thread
+thread_not_found:
+  code: ERR_THR0101
+  message: Không tìm thấy bài viết hợp lệ!
+thread_not_available:
+  code: ERR_THR0102
+  message: Bài viết này không khả dụng!
+thread_request_invalid:
+  code: ERR_THR0103
+  message: Bài viết mới phải có nội dung hoặc tệp tin đính kèm!
+thread_parent_not_found:
+  code: ERR_THR0104
+  message: Bài viết gốc không tồn tại!
+thread_parent_not_available:
+  code: ERR_THR0105
+  message: Bài viết gốc không khả dụng!
+private_thread_can_not_have_comment:
+  code: ERR_THR0106
+  message: Bạn không thể bình luận vào bài viết đang ở chế độ riêng tư!

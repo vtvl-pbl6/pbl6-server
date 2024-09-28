@@ -13,22 +13,22 @@ import java.util.Optional;
 public interface FetchRepository<T, ID, K extends FetchBaseRepository<T>> {
     K getRepository();
 
-    default Optional<T> findByIdWithRelationship(ID id) {
+    default Optional<T> findById(ID id) {
         return getRepository().fetchAllDataWithoutPagination(
                 List.of(new WhereElement("id", id, WhereOperator.EQUAL)),
                 null)
             .stream().findFirst();
     }
 
-    default List<T> findAllWithRelationship() {
+    default List<T> findAll() {
         return getRepository().fetchAllDataWithoutPagination(null, null);
     }
 
-    default Page<T> findAllWithRelationship(Pageable pageable, String... relationships) {
+    default Page<T> findAll(Pageable pageable, String... relationships) {
         return getRepository().fetchAllDataWithPagination(null, pageable);
     }
 
-    default List<T> findAllWithRelationship(Sort sort, String... relationships) {
+    default List<T> findAll(Sort sort, String... relationships) {
         return getRepository().fetchAllDataWithoutPagination(null, sort);
     }
 }
