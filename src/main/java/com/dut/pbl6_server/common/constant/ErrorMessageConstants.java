@@ -49,6 +49,11 @@ public final class ErrorMessageConstants {
      * Thread
      */
     public static final String THREAD_NOT_FOUND = "thread_not_found";
+    public static final String THREAD_NOT_AVAILABLE = "thread_not_available";
+    public static final String THREAD_REQUEST_INVALID = "thread_request_invalid";
+    public static final String THREAD_PARENT_NOT_FOUND = "thread_parent_not_found";
+    public static final String THREAD_PARENT_NOT_AVAILABLE = "thread_parent_not_available";
+    public static final String PRIVATE_THREAD_CAN_NOT_HAVE_COMMENT = "private_thread_can_not_have_comment";
 
     private ErrorMessageConstants() {
     }

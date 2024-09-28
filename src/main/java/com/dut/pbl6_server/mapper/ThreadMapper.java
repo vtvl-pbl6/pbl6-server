@@ -4,10 +4,9 @@ import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.config.SpringMapStructConfig;
 import com.dut.pbl6_server.dto.respone.AccountResponse;
 import com.dut.pbl6_server.dto.respone.ThreadResponse;
-import com.dut.pbl6_server.entity.File;
 import com.dut.pbl6_server.entity.Thread;
-import com.dut.pbl6_server.entity.ThreadFile;
-import com.dut.pbl6_server.entity.ThreadSharer;
+import com.dut.pbl6_server.entity.*;
+import com.dut.pbl6_server.entity.enums.ThreadStatus;
 import com.dut.pbl6_server.entity.json.HosResult;
 import org.hibernate.LazyInitializationException;
 import org.mapstruct.Mapper;
@@ -17,25 +16,41 @@ import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
-@Mapper(
-    config = SpringMapStructConfig.class,
-    uses = {AccountMapper.class}
-)
+@Mapper(config = SpringMapStructConfig.class)
 public interface ThreadMapper {
     String TO_RESPONSE_NAMED = "thread_to_response";
     ThreadMapper INSTANCE = Mappers.getMapper(ThreadMapper.class);
 
     @Named(TO_RESPONSE_NAMED)
-    @Mapping(source = "author", target = "author", qualifiedByName = AccountMapper.TO_RESPONSE_NAMED)
-    @Mapping(source = "parentThread", target = "parentThread", qualifiedByName = TO_RESPONSE_NAMED)
+    @Mapping(source = "author", target = "author", qualifiedByName = "getAuthor")
+    @Mapping(source = "parentThread", target = "parentThread", qualifiedByName = "getParentThread")
     @Mapping(source = "thread", target = "content", qualifiedByName = "getContent")
-    @Mapping(source = "files", target = "files", qualifiedByName = "getFiles")
+    @Mapping(source = "thread", target = "files", qualifiedByName = "getFiles")
     @Mapping(source = "sharers", target = "sharers", qualifiedByName = "getSharers")
     @Mapping(source = "comments", target = "comments", qualifiedByName = "getComments")
     ThreadResponse toResponse(Thread thread);
 
+    @Named("getAuthor")
+    default AccountResponse getAuthor(Account author) {
+        try {
+            return AccountMapper.INSTANCE.toResponse(author);
+        } catch (LazyInitializationException e) {
+            return null;
+        }
+    }
+
+    @Named("getParentThread")
+    default ThreadResponse getParentThread(Thread parentThread) {
+        try {
+            return toResponse(parentThread);
+        } catch (LazyInitializationException e) {
+            return null;
+        }
+    }
+
     @Named("getContent")
     default String getContent(Thread thread) {
+        if (thread.getStatus() == ThreadStatus.CREATING) return null; // Don't show content when thread is creating
         String content = thread.getContent();
         List<HosResult> hosResults = thread.getHosResult();
         if (CommonUtils.String.isEmptyOrNull(content)) return null;
@@ -51,7 +66,7 @@ public interface ThreadMapper {
             builder.append(content, start, end);
             builder.append("*".repeat(result.getEnd() - result.getStart() + 1));
 
-            start = result.getEnd();
+            start = result.getEnd() + 1;
             if (i == hosResults.size() - 1 && start < content.length()) {
                 builder.append(content, start, content.length());
             }
@@ -60,10 +75,11 @@ public interface ThreadMapper {
     }
 
     @Named("getFiles")
-    default List<File> getFiles(List<ThreadFile> threadFiles) {
+    default List<File> getFiles(Thread thread) {
         try {
-            if (CommonUtils.List.isEmptyOrNull(threadFiles)) return null;
-            return threadFiles.stream().map(ThreadFile::getFile).toList();
+            if (thread.getStatus() == ThreadStatus.CREATING) return null; // Don't show content when thread is creating
+            if (CommonUtils.List.isEmptyOrNull(thread.getFiles())) return null;
+            return thread.getFiles().stream().map(ThreadFile::getFile).toList();
         } catch (LazyInitializationException e) {
             return null;
         }

@@ -1,6 +1,5 @@
 package com.dut.pbl6_server.task_executor.service;
 
-import com.dut.pbl6_server.common.exception.BadRequestException;
 import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.common.util.VoidCallBack;
 import com.dut.pbl6_server.config.httpclient.HttpClientConfig;
@@ -33,14 +32,14 @@ public class ContentModerationTaskService implements BaseTaskService<ContentMode
     private final TaskExecutor contentModerationTaskExecutor;
     private final ThreadsRepository threadsRepository;
 
-    public void moderate(Thread thread, List<ThreadFile> threadFiles) {
+    public void moderate(Thread thread) {
         submitTask(
             new ContentModerationTask(
                 httpClientConfig,
                 serverUrl,
                 accessKey,
                 thread.getContent(),
-                CommonUtils.List.isNotEmptyOrNull(threadFiles) ? threadFiles.stream().map(ThreadFile::getFile).toList() : null,
+                CommonUtils.List.isNotEmptyOrNull(thread.getFiles()) ? thread.getFiles().stream().map(ThreadFile::getFile).toList() : null,
                 new VoidCallBack<ContentModerationResult>() {
                     @Override
                     @SuppressWarnings("unchecked")
@@ -52,7 +51,6 @@ public class ContentModerationTaskService implements BaseTaskService<ContentMode
                                 response.getErrors().forEach(e -> log.error(e.toString()));
                                 return;
                             }
-                            var threadTmp = threadsRepository.findById(thread.getId()).orElseThrow(() -> new BadRequestException("Thread not found"));
 
                             // Handle text moderation response
                             if (result.isTextModeratedDone()) {
@@ -61,7 +59,7 @@ public class ContentModerationTaskService implements BaseTaskService<ContentMode
                                 List<HosResult> hosResults = hosSpans.stream().map(HosResult::fromMap).toList();
                                 // Save to database
                                 if (CommonUtils.List.isNotEmptyOrNull(hosResults)) {
-                                    threadTmp.setHosResult(hosResults);
+                                    thread.setHosResult(hosResults);
                                     threadsRepository.save(thread);
                                 }
                             }
@@ -74,8 +72,8 @@ public class ContentModerationTaskService implements BaseTaskService<ContentMode
                             // Change thread status and send notification to client if both text and image moderation are done
                             if (result.isTextModeratedDone() && result.isImageModeratedDone()) {
                                 // Change thread status
-                                threadTmp.setStatus(ThreadStatus.CREATE_DONE);
-                                threadsRepository.save(threadTmp);
+                                thread.setStatus(ThreadStatus.CREATE_DONE);
+                                threadsRepository.save(thread);
 
                                 // TODO: Send notification to client
                             }

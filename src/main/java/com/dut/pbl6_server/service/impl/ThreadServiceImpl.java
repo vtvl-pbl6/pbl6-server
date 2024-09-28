@@ -1,62 +1,146 @@
 package com.dut.pbl6_server.service.impl;
 
 import com.dut.pbl6_server.common.constant.ErrorMessageConstants;
+import com.dut.pbl6_server.common.exception.BadRequestException;
 import com.dut.pbl6_server.common.exception.NotFoundObjectException;
 import com.dut.pbl6_server.common.model.DataWithPage;
 import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.common.util.PageUtils;
+import com.dut.pbl6_server.dto.request.ThreadRequest;
 import com.dut.pbl6_server.dto.respone.ThreadResponse;
+import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.Thread;
+import com.dut.pbl6_server.entity.ThreadFile;
+import com.dut.pbl6_server.entity.enums.ThreadStatus;
+import com.dut.pbl6_server.entity.enums.Visibility;
 import com.dut.pbl6_server.mapper.ThreadMapper;
 import com.dut.pbl6_server.repository.fetch_data.ThreadsFetchRepository;
-import com.dut.pbl6_server.repository.jpa.AccountsRepository;
 import com.dut.pbl6_server.repository.jpa.FollowersRepository;
+import com.dut.pbl6_server.repository.jpa.ThreadFilesRepository;
 import com.dut.pbl6_server.repository.jpa.ThreadsRepository;
+import com.dut.pbl6_server.service.CloudinaryService;
 import com.dut.pbl6_server.service.ThreadService;
 import com.dut.pbl6_server.task_executor.service.ContentModerationTaskService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service("PostService")
 @RequiredArgsConstructor
 public class ThreadServiceImpl implements ThreadService {
     private final ContentModerationTaskService contentModerationTaskService;
+    private final CloudinaryService cloudinaryService;
+    private final ThreadFilesRepository threadFilesRepository;
     private final ThreadsRepository threadsRepository;
     private final ThreadsFetchRepository threadsFetchRepository;
-    private final AccountsRepository accountsRepository;
     private final FollowersRepository followersRepository;
     private final ThreadMapper threadMapper;
 
     @Override
-    public Object createThread(String text) {
-        if (CommonUtils.String.isNotEmptyOrNull(text)) {
-            var newThread = threadsRepository.save(
-                Thread.builder()
-                    .author(accountsRepository.findByEmail("user@gmail.com").orElse(null))
-                    .content(text)
-                    .build()
-            );
+    @Transactional
+    public ThreadResponse createThread(Account currentUser, ThreadRequest request) {
+        var parentThread = request.getParentId() != null
+            ? threadsRepository.findById(request.getParentId()).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_PARENT_NOT_FOUND))
+            : null;
 
+        // Check parent thread's visibility and status
+        if (parentThread != null) {
+            switch (parentThread.getVisibility()) {
+                case PRIVATE -> throw new BadRequestException(
+                    currentUser.getId().equals(parentThread.getAuthor().getId())
+                        ? ErrorMessageConstants.THREAD_PARENT_NOT_AVAILABLE
+                        : ErrorMessageConstants.PRIVATE_THREAD_CAN_NOT_HAVE_COMMENT
+                );
+                case FRIEND_ONLY -> {
+                    // if the current user is not following the author of the parent thread then the parent thread is not available
+                    if (!followersRepository.isFollowing(parentThread.getAuthor().getId(), currentUser.getId()))
+                        throw new BadRequestException(ErrorMessageConstants.THREAD_PARENT_NOT_AVAILABLE);
+                }
+            }
 
-            // Moderates the content of the text
-            contentModerationTaskService.moderate(newThread, null);
-
-            return "ok";
+            if (parentThread.getStatus() == ThreadStatus.CREATING || parentThread.getStatus() == ThreadStatus.PENDING)
+                throw new BadRequestException(ErrorMessageConstants.THREAD_PARENT_NOT_AVAILABLE);
         }
 
-        return null;
+        // Save a new thread
+        var createdThread = threadsRepository.save(
+            Thread.builder()
+                .author(currentUser)
+                .content(request.getContent())
+                .parentThread(parentThread)
+                .visibility(request.getVisibility())
+                .build()
+        );
+
+        // Save the files of the thread
+        if (CommonUtils.List.isNotEmptyOrNull(request.getFiles())) {
+            var uploadedFiles = cloudinaryService.uploadFiles(request.getFiles());
+            var threadFiles = new ArrayList<ThreadFile>();
+            for (var file : uploadedFiles) {
+                threadFiles.add(
+                    ThreadFile.builder()
+                        .thread(createdThread)
+                        .file(file)
+                        .build()
+                );
+            }
+            var createdThreadFiles = threadFilesRepository.saveAll(threadFiles);
+            createdThread.setFiles(createdThreadFiles);
+        }
+
+        // Moderate the content and files
+        if (CommonUtils.String.isNotEmptyOrNull(request.getContent()))
+            contentModerationTaskService.moderate(createdThread);
+
+        return threadMapper.toResponse(createdThread);
     }
 
     @Override
-    public ThreadResponse getThreadById(Long id) {
-        var thread = threadsFetchRepository.findByIdWithRelationship(id).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
-        return threadMapper.toResponse(thread);
+    public ThreadResponse getThreadById(Account currentUser, Long threadId) {
+        var thread = threadsFetchRepository.findById(threadId)
+            .orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
+
+        // Check if the current user is the author of the thread
+        if (currentUser.getId().equals(thread.getAuthor().getId()))
+            return threadMapper.toResponse(thread);
+
+        // Check thread's visibility for the current user who is not the author of the thread
+        return switch (thread.getVisibility()) {
+            case PRIVATE -> throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
+            case FRIEND_ONLY -> {
+                // if the current user is not following the author of the thread then the thread is not available
+                if (!followersRepository.isFollowing(thread.getAuthor().getId(), currentUser.getId()))
+                    throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
+
+                yield threadMapper.toResponse(thread);
+            }
+            case PUBLIC -> threadMapper.toResponse(thread);
+        };
     }
 
     @Override
-    public DataWithPage<ThreadResponse> getThreadsByAuthorId(Long authorId, Pageable pageable) {
-        var page = threadsFetchRepository.findAllByAuthorId(authorId, pageable);
+    public DataWithPage<ThreadResponse> getThreadsByAuthorId(Account currentUser, Long authorId, Pageable pageable) {
+        Page<Thread> page = null;
+
+        // Check if the current user is the author
+        if (currentUser.getId().equals(authorId)) {
+            page = threadsFetchRepository.findAllByAuthorId(authorId, pageable);
+        }
+
+        // Check if the current user is following the author
+        else if (followersRepository.isFollowing(authorId, currentUser.getId())) {
+            page = threadsFetchRepository.findAllByAuthorIdAndVisibilityIn(authorId, List.of(Visibility.PUBLIC, Visibility.FRIEND_ONLY), pageable);
+        }
+
+        // The current user is visitor
+        else
+            page = threadsFetchRepository.findAllByAuthorIdAndVisibilityIn(authorId, List.of(Visibility.PUBLIC), pageable);
+
         return new DataWithPage<>(
             page.stream().map(threadMapper::toResponse).toList(),
             PageUtils.makePageInfo(page)
@@ -66,7 +150,7 @@ public class ThreadServiceImpl implements ThreadService {
     @Override
     public DataWithPage<ThreadResponse> getFollowingThreads(Long userId, Pageable pageable) {
         var followingUserIds = followersRepository.findAllByFollowerId(userId).stream().map(f -> f.getUser().getId()).toList();
-        var page = threadsFetchRepository.findAllByAuthorIdIn(followingUserIds, pageable);
+        var page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityIn(followingUserIds, List.of(Visibility.PUBLIC, Visibility.FRIEND_ONLY), pageable);
         return new DataWithPage<>(
             page.stream().map(threadMapper::toResponse).toList(),
             PageUtils.makePageInfo(page)
