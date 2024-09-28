@@ -1,5 +1,6 @@
 package com.dut.pbl6_server.repository.fetch_data.impl;
 
+import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.entity.Thread;
 import com.dut.pbl6_server.entity.enums.ThreadStatus;
 import com.dut.pbl6_server.entity.enums.Visibility;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -25,48 +27,23 @@ public class ThreadsFetchRepositoryImpl implements ThreadsFetchRepository {
     }
 
     @Override
-    public Page<Thread> findAllByAuthorId(Long authorId, Pageable pageable) {
-        return fetchBaseRepository.fetchAllDataWithPagination(
-            List.of(
-                WhereElement.builder().key("author.id").value(authorId).operator(WhereOperator.EQUAL).build(),
-                WhereElement.builder().key("status").value(ThreadStatus.PENDING).operator(WhereOperator.NOT_EQUAL).build()
-            ),
-            pageable
-        );
-    }
+    public Page<Thread> findAllByAuthorIdInAndVisibilityInAndStatusesNotIn(
+        List<Long> authorIds,
+        List<Visibility> visibilities,
+        List<ThreadStatus> statuses,
+        Pageable pageable
+    ) {
+        var whereElements = new ArrayList<WhereElement>();
 
-    @Override
-    public Page<Thread> findAllByAuthorIdAndVisibilityIn(Long authorId, List<Visibility> visibilities, Pageable pageable) {
-        return fetchBaseRepository.fetchAllDataWithPagination(
-            List.of(
-                WhereElement.builder().key("author.id").value(authorId).operator(WhereOperator.EQUAL).build(),
-                WhereElement.builder().key("status").value(ThreadStatus.PENDING).operator(WhereOperator.NOT_EQUAL).build(),
-                WhereElement.builder().key("visibility").value(visibilities).operator(WhereOperator.IN).build()
-            ),
-            pageable
-        );
-    }
+        if (CommonUtils.List.isNotEmptyOrNull(authorIds))
+            whereElements.add(WhereElement.builder().key("author.id").value(authorIds).operator(WhereOperator.IN).build());
 
-    @Override
-    public Page<Thread> findAllByAuthorIdIn(List<Long> authorIds, Pageable pageable) {
-        return fetchBaseRepository.fetchAllDataWithPagination(
-            List.of(
-                WhereElement.builder().key("author.id").value(authorIds).operator(WhereOperator.IN).build(),
-                WhereElement.builder().key("status").value(ThreadStatus.PENDING).operator(WhereOperator.NOT_EQUAL).build()
-            ),
-            pageable
-        );
-    }
+        if (CommonUtils.List.isNotEmptyOrNull(visibilities))
+            whereElements.add(WhereElement.builder().key("visibility").value(visibilities).operator(WhereOperator.IN).build());
 
-    @Override
-    public Page<Thread> findAllByAuthorIdInAndVisibilityIn(List<Long> authorIds, List<Visibility> visibilities, Pageable pageable) {
-        return fetchBaseRepository.fetchAllDataWithPagination(
-            List.of(
-                WhereElement.builder().key("author.id").value(authorIds).operator(WhereOperator.IN).build(),
-                WhereElement.builder().key("status").value(ThreadStatus.PENDING).operator(WhereOperator.NOT_EQUAL).build(),
-                WhereElement.builder().key("visibility").value(visibilities).operator(WhereOperator.IN).build()
-            ),
-            pageable
-        );
+        if (CommonUtils.List.isNotEmptyOrNull(statuses))
+            whereElements.add(WhereElement.builder().key("status").value(statuses).operator(WhereOperator.NOT_IN).build());
+
+        return fetchBaseRepository.fetchAllDataWithPagination(CommonUtils.List.isEmptyOrNull(whereElements) ? null : whereElements, pageable);
     }
 }

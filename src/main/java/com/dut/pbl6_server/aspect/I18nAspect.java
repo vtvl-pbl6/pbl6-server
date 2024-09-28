@@ -22,7 +22,7 @@ public class I18nAspect {
     // Set language before entering controller
     @Before("controllers()")
     public void setLanguageBefore(JoinPoint joinPoint) {
-        if (I18nUtils.getCurrentLanguage() != null) return;
+        if (!I18nUtils.notSetLanguage()) return;
 
         // Get request from RequestContextHolder
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();

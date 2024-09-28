@@ -10,6 +10,7 @@ import java.util.Map;
 
 public final class I18nUtils {
     private static final ThreadLocal<LocaleLanguage> lang = new ThreadLocal<>();
+    private static final LocaleLanguage DEFAULT_LANGUAGE = LocaleLanguage.VI;
 
     public static void setLanguage(String language) {
         try {
@@ -19,8 +20,12 @@ public final class I18nUtils {
         }
     }
 
+    public static boolean notSetLanguage() {
+        return lang.get() == null;
+    }
+
     public static LocaleLanguage getCurrentLanguage() {
-        return (lang.get() == null) ? LocaleLanguage.EN : lang.get();
+        return (lang.get() == null) ? DEFAULT_LANGUAGE : lang.get();
     }
 
     @SuppressWarnings("unchecked")

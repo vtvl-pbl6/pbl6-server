@@ -38,6 +38,12 @@ public class JwtAuthFilterConfig extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
+            // Handle pre-flight requests (OPTIONS)
+            if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             // Allow if the request is from web socket
             if (request.getRequestURI().startsWith("/ws")) {
                 filterChain.doFilter(request, response);
@@ -49,7 +55,7 @@ public class JwtAuthFilterConfig extends OncePerRequestFilter {
             if (CommonUtils.String.isEmptyOrNull(apiKey))
                 throw new UnauthorizedException(ErrorMessageConstants.API_KEY_IS_REQUIRED);
             if (!apiKey.equals(apiKeyValue))
-                throw new ForbiddenException(ErrorMessageConstants.API_KAY_NOT_MATCH);
+                throw new ForbiddenException(ErrorMessageConstants.API_KEY_NOT_MATCH);
 
             // Jwt token
             final String authorizationHeader = request.getHeader("Authorization");

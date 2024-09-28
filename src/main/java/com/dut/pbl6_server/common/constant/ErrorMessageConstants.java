@@ -25,7 +25,7 @@ public final class ErrorMessageConstants {
      * Authentication
      */
     public static final String API_KEY_IS_REQUIRED = "api_key_is_required";
-    public static final String API_KAY_NOT_MATCH = "api_key_not_match";
+    public static final String API_KEY_NOT_MATCH = "api_key_not_match";
     public static final String INVALID_TOKEN = "invalid_token";
     public static final String EXPIRED_TOKEN = "expired_token";
     public static final String REVOKED_TOKEN = "revoked_token";

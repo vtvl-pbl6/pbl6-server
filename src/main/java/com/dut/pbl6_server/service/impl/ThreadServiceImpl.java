@@ -129,17 +129,32 @@ public class ThreadServiceImpl implements ThreadService {
 
         // Check if the current user is the author
         if (currentUser.getId().equals(authorId)) {
-            page = threadsFetchRepository.findAllByAuthorId(authorId, pageable);
+            page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusesNotIn(
+                List.of(authorId),
+                List.of(), // All visibilities
+                List.of(), // All statuses
+                pageable
+            );
         }
 
         // Check if the current user is following the author
         else if (followersRepository.isFollowing(authorId, currentUser.getId())) {
-            page = threadsFetchRepository.findAllByAuthorIdAndVisibilityIn(authorId, List.of(Visibility.PUBLIC, Visibility.FRIEND_ONLY), pageable);
+            page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusesNotIn(
+                List.of(authorId),
+                List.of(Visibility.PUBLIC, Visibility.FRIEND_ONLY),
+                List.of(ThreadStatus.PENDING, ThreadStatus.CREATING),
+                pageable
+            );
         }
 
         // The current user is visitor
         else
-            page = threadsFetchRepository.findAllByAuthorIdAndVisibilityIn(authorId, List.of(Visibility.PUBLIC), pageable);
+            page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusesNotIn(
+                List.of(authorId),
+                List.of(Visibility.PUBLIC),
+                List.of(ThreadStatus.PENDING, ThreadStatus.CREATING),
+                pageable
+            );
 
         return new DataWithPage<>(
             page.stream().map(threadMapper::toResponse).toList(),
@@ -150,7 +165,12 @@ public class ThreadServiceImpl implements ThreadService {
     @Override
     public DataWithPage<ThreadResponse> getFollowingThreads(Long userId, Pageable pageable) {
         var followingUserIds = followersRepository.findAllByFollowerId(userId).stream().map(f -> f.getUser().getId()).toList();
-        var page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityIn(followingUserIds, List.of(Visibility.PUBLIC, Visibility.FRIEND_ONLY), pageable);
+        var page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusesNotIn(
+            followingUserIds,
+            List.of(Visibility.PUBLIC, Visibility.FRIEND_ONLY),
+            List.of(ThreadStatus.PENDING, ThreadStatus.CREATING),
+            pageable
+        );
         return new DataWithPage<>(
             page.stream().map(threadMapper::toResponse).toList(),
             PageUtils.makePageInfo(page)
