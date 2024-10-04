@@ -14,4 +14,6 @@ public interface ThreadService {
     DataWithPage<ThreadResponse> getThreadsByAuthorId(Account currentUser, Long authorId, Pageable pageable);
 
     DataWithPage<ThreadResponse> getFollowingThreads(Long userId, Pageable pageable);
+
+    DataWithPage<ThreadResponse> getThreadSharesByAccount(Account currentUser, Pageable pageable);
 }

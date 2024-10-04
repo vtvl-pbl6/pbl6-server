@@ -55,6 +55,11 @@ public final class ErrorMessageConstants {
     public static final String THREAD_PARENT_NOT_AVAILABLE = "thread_parent_not_available";
     public static final String PRIVATE_THREAD_CAN_NOT_HAVE_COMMENT = "private_thread_can_not_have_comment";
 
+    /**
+     * Repost
+     */
+    public static final String REPOST_NOT_FOUND = "repost_not_found";
+
     private ErrorMessageConstants() {
     }
 }

@@ -46,4 +46,12 @@ public class ThreadsFetchRepositoryImpl implements ThreadsFetchRepository {
 
         return fetchBaseRepository.fetchAllDataWithPagination(CommonUtils.List.isEmptyOrNull(whereElements) ? null : whereElements, pageable);
     }
+
+    @Override
+    public Page<Thread> findThreadsByThreadIds(List<Long> threadIds, Pageable pageable) {
+        var whereElements = new ArrayList<WhereElement>();
+        whereElements.add(WhereElement.builder().key("id").value(threadIds).operator(WhereOperator.IN).build());
+        return fetchBaseRepository.fetchAllDataWithPagination(whereElements, pageable);
+    }
+
 }

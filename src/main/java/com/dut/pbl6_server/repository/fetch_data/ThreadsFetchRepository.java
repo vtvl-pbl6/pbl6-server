@@ -11,4 +11,7 @@ import java.util.List;
 
 public interface ThreadsFetchRepository extends FetchRepository<Thread, Long, FetchBaseRepository<Thread>> {
     Page<Thread> findAllByAuthorIdInAndVisibilityInAndStatusesNotIn(List<Long> authorIds, List<Visibility> visibilities, List<ThreadStatus> statuses, Pageable pageable);
+
+    Page<Thread> findThreadsByThreadIds(List<Long> threadIds, Pageable pageable);
+
 }
