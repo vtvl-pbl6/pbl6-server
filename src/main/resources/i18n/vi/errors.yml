@@ -120,3 +120,8 @@ thread_parent_not_available:
 private_thread_can_not_have_comment:
   code: ERR_THR0106
   message: Bạn không thể bình luận vào bài viết đang ở chế độ riêng tư!
+
+# Repost
+repost_not_found:
+  code: ERR_REP0101
+  message: Bạn không có bài đăng lại nào!

@@ -11,12 +11,14 @@ import com.dut.pbl6_server.dto.respone.ThreadResponse;
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.Thread;
 import com.dut.pbl6_server.entity.ThreadFile;
+import com.dut.pbl6_server.entity.ThreadSharer;
 import com.dut.pbl6_server.entity.enums.ThreadStatus;
 import com.dut.pbl6_server.entity.enums.Visibility;
 import com.dut.pbl6_server.mapper.ThreadMapper;
 import com.dut.pbl6_server.repository.fetch_data.ThreadsFetchRepository;
 import com.dut.pbl6_server.repository.jpa.FollowersRepository;
 import com.dut.pbl6_server.repository.jpa.ThreadFilesRepository;
+import com.dut.pbl6_server.repository.jpa.ThreadSharersRepository;
 import com.dut.pbl6_server.repository.jpa.ThreadsRepository;
 import com.dut.pbl6_server.service.CloudinaryService;
 import com.dut.pbl6_server.service.ThreadService;
@@ -40,6 +42,7 @@ public class ThreadServiceImpl implements ThreadService {
     private final ThreadsFetchRepository threadsFetchRepository;
     private final FollowersRepository followersRepository;
     private final ThreadMapper threadMapper;
+    private final ThreadSharersRepository threadSharersRepository;
 
     @Override
     @Transactional
@@ -176,4 +179,23 @@ public class ThreadServiceImpl implements ThreadService {
             PageUtils.makePageInfo(page)
         );
     }
+
+    @Override
+    public DataWithPage<ThreadResponse> getThreadSharesByAccount(Account currentUser, Pageable pageable) {
+        Page<Thread> page = null;
+
+        List<Long> threadIds = threadSharersRepository.getListThreadIdByUser(currentUser);
+
+        if (CommonUtils.List.isEmptyOrNull(threadIds)) {
+            throw new NotFoundObjectException(ErrorMessageConstants.REPOST_NOT_FOUND);
+        }
+
+        page = threadsFetchRepository.findThreadsByThreadIds(threadIds, pageable);
+
+        return new DataWithPage<>(
+            page.stream().map(threadMapper::toResponse).toList(),
+            PageUtils.makePageInfo(page)
+        );
+    }
+
 }
