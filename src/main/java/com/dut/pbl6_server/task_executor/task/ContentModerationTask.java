@@ -58,6 +58,7 @@ public class ContentModerationTask extends BaseTask<ContentModerationResult> {
         // Handle the text
         if (CommonUtils.String.isNotEmptyOrNull(text)) {
             try {
+                var url = getUrl(serverUrl, true);
                 // Prepare the request body
                 var requestBody = RequestBody.create(
                     Objects.requireNonNull(CommonUtils.Json.encode(Map.of(
@@ -68,13 +69,14 @@ public class ContentModerationTask extends BaseTask<ContentModerationResult> {
 
                 // Send the request to the content moderation server
                 var execute = httpClient.newCall(httpClientConfig.getRequest(
-                    getUrl(serverUrl, true),
+                    url,
                     HttpMethod.POST,
                     requestBody,
                     null)
                 ).execute();
 
                 String responseBody = execute.body() != null ? execute.body().string() : null;
+                log.info(String.format("[%s] - %s: \n%s", Thread.currentThread().getName(), url, responseBody)); // Log the response body
                 AbstractResponse response = CommonUtils.Json.decode(responseBody, AbstractResponse.class);
                 isTextModeratedDone = true;
                 onDone.call(new ContentModerationResult(response, true, isImageModeratedDone)); // Notify the caller

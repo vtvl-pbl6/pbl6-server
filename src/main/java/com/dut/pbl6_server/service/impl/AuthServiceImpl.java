@@ -1,6 +1,7 @@
 package com.dut.pbl6_server.service.impl;
 
 import com.dut.pbl6_server.common.constant.ErrorMessageConstants;
+import com.dut.pbl6_server.common.constant.RedisCacheConstants;
 import com.dut.pbl6_server.common.exception.BadRequestException;
 import com.dut.pbl6_server.common.exception.ForbiddenException;
 import com.dut.pbl6_server.common.util.CommonUtils;
@@ -13,6 +14,7 @@ import com.dut.pbl6_server.entity.RefreshToken;
 import com.dut.pbl6_server.entity.enums.AccountRole;
 import com.dut.pbl6_server.repository.jpa.AccountsRepository;
 import com.dut.pbl6_server.repository.jpa.RefreshTokensRepository;
+import com.dut.pbl6_server.repository.redis.RedisRepository;
 import com.dut.pbl6_server.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
     private final AccountsRepository accountsRepository;
+    private final RedisRepository redisRepository;
 
     @Value("${application.jwt.refresh-token-expiration-ms}")
     private Long refreshTokenExpirationMs;
@@ -75,5 +78,21 @@ public class AuthServiceImpl implements AuthService {
         }).toList();
         if (CommonUtils.List.isNotEmptyOrNull(expiredRefreshTokens))
             refreshTokensRepository.deleteAll(expiredRefreshTokens);
+    }
+
+    @Override
+    public void revokeToken(Account account, boolean isAdmin) {
+        var accessToken = SecurityContextHolder.getContext().getAuthentication().getCredentials().toString();
+
+        // Check permission
+        if (account.getRole() != AccountRole.ADMIN && isAdmin)
+            throw new ForbiddenException(ErrorMessageConstants.FORBIDDEN);
+
+        // Save revoked access token and refresh token to Redis
+        redisRepository.save(
+            RedisCacheConstants.AUTH_KEY,
+            RedisCacheConstants.REVOKE_ACCESS_TOKEN_HASH(account.getId(), true),
+            accessToken
+        );
     }
 }

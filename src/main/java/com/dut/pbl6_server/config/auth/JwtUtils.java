@@ -35,12 +35,16 @@ public class JwtUtils {
     public Account getAccountFromToken(String token) {
         Claims jwtClaims = getJwtClaims(token, "access");
         Long accountId = Long.parseLong(jwtClaims.getSubject());
+
+        // Check if the access token is revoked
         if (redisRepository.findAllByHashKeyPrefix(
             RedisCacheConstants.AUTH_KEY,
-            RedisCacheConstants.REVOKE_ACCESS_TOKEN_HASH(accountId, false)).contains(token)
+            RedisCacheConstants.REVOKE_ACCESS_TOKEN_HASH(accountId, false)
+        ).contains(token)
         ) {
             throw new UnauthorizedException(ErrorMessageConstants.REVOKED_TOKEN);
         }
+
         return accountRepository.findById(accountId)
             .orElseThrow(() -> new ForbiddenException(ErrorMessageConstants.FORBIDDEN));
     }
@@ -55,13 +59,25 @@ public class JwtUtils {
     public CredentialResponse refreshToken(String refreshToken, boolean isAdmin) {
         Claims jwtClaims = getJwtClaims(refreshToken, "refresh");
         Long accountId = Long.parseLong(jwtClaims.getSubject());
+
+        // Check if the refresh token is revoked
+        if (redisRepository.findAllByHashKeyPrefix(
+            RedisCacheConstants.AUTH_KEY,
+            RedisCacheConstants.REVOKE_REFRESH_TOKEN_HASH(accountId, false)
+        ).contains(refreshToken)
+        ) {
+            throw new UnauthorizedException(ErrorMessageConstants.REVOKED_REFRESH_TOKEN);
+        }
+
         // Check if the user is an admin
         if (!accountRepository.isAdministrator(accountId) && isAdmin)
             throw new ForbiddenException(ErrorMessageConstants.FORBIDDEN);
+
         var accountRefreshTokens = refreshTokenRepository.findAllByAccountId(accountId);
         // Check if list refresh token is empty or null
         if (CommonUtils.List.isEmptyOrNull(accountRefreshTokens))
             throw new ForbiddenException(ErrorMessageConstants.REFRESH_TOKEN_NOT_FOUND);
+
         // Get refresh token from list refresh token
         var accountRefreshToken = accountRefreshTokens.stream()
             .filter(refreshTokenEntity -> refreshToken.equals(refreshTokenEntity.getToken()))
