@@ -35,6 +35,9 @@ public final class ErrorMessageConstants {
     public static final String REFRESH_TOKEN_NOT_FOUND = "refresh_token_not_found";
     public static final String ACCOUNT_IS_ACTIVE = "account_is_active";
     public static final String ACCOUNT_IS_NOT_ACTIVE = "account_is_not_active";
+    public static final String USERNAME_ALREADY_EXISTS = "username_already_exists";
+    public static final String EMAIL_ALREADY_EXISTS = "email_already_exists";
+    public static final String CONFIRM_PASSWORD_NOT_MATCHING= "confirm_password_not_matching";
 
 
     /**

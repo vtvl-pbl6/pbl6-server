@@ -29,7 +29,7 @@ public interface AccountMapper {
     default List<AccountResponse> getFollowers(List<Follower> followers) {
         try {
             if (CommonUtils.List.isEmptyOrNull(followers)) return null;
-            return followers.stream().map(e -> this.toResponse(e.getUser())).toList();
+            return followers.stream().map(e -> this.toResponse(e.getFollower())).toList();
         } catch (LazyInitializationException e) {
             return null;
         }
@@ -39,7 +39,7 @@ public interface AccountMapper {
     default List<AccountResponse> getFollowingUsers(List<Follower> followingUsers) {
         try {
             if (CommonUtils.List.isEmptyOrNull(followingUsers)) return null;
-            return followingUsers.stream().map(e -> this.toResponse(e.getFollower())).toList();
+            return followingUsers.stream().map(e -> this.toResponse(e.getUser())).toList();
         } catch (LazyInitializationException e) {
             return null;
         }

@@ -13,4 +13,6 @@ public interface AccountsRepository extends JpaRepository<Account, Long> {
 
     @Query("SELECT a.role = 'ADMIN' FROM Account a WHERE a.id = :id")
     boolean isAdministrator(Long id);
+
+    boolean existsByDisplayName(String displayName);
 }

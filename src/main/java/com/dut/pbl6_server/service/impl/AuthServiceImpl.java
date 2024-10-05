@@ -4,14 +4,18 @@ import com.dut.pbl6_server.common.constant.ErrorMessageConstants;
 import com.dut.pbl6_server.common.constant.RedisCacheConstants;
 import com.dut.pbl6_server.common.exception.BadRequestException;
 import com.dut.pbl6_server.common.exception.ForbiddenException;
+import com.dut.pbl6_server.common.exception.InternalServerException;
 import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.config.auth.JwtUtils;
 import com.dut.pbl6_server.dto.request.LoginRequest;
 import com.dut.pbl6_server.dto.request.RefreshTokenRequest;
+import com.dut.pbl6_server.dto.request.RegisterRequest;
+import com.dut.pbl6_server.dto.respone.AccountResponse;
 import com.dut.pbl6_server.dto.respone.CredentialResponse;
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.RefreshToken;
 import com.dut.pbl6_server.entity.enums.AccountRole;
+import com.dut.pbl6_server.mapper.AccountMapper;
 import com.dut.pbl6_server.repository.jpa.AccountsRepository;
 import com.dut.pbl6_server.repository.jpa.RefreshTokensRepository;
 import com.dut.pbl6_server.repository.redis.RedisRepository;
@@ -36,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AccountsRepository accountsRepository;
     private final RedisRepository redisRepository;
+    private final AccountMapper accountMapper;
 
     @Value("${application.jwt.refresh-token-expiration-ms}")
     private Long refreshTokenExpirationMs;
@@ -95,4 +100,36 @@ public class AuthServiceImpl implements AuthService {
             accessToken
         );
     }
+
+    @Override
+    public AccountResponse register(RegisterRequest registerRequest) {
+        if (accountsRepository.existsByEmail(registerRequest.getEmail())) {
+            throw new BadRequestException(ErrorMessageConstants.EMAIL_ALREADY_EXISTS);
+        }
+
+        if (accountsRepository.existsByDisplayName(registerRequest.getUsername())) {
+            throw new BadRequestException(ErrorMessageConstants.USERNAME_ALREADY_EXISTS);
+        }
+
+        if (!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
+            throw new BadRequestException(ErrorMessageConstants.CONFIRM_PASSWORD_NOT_MATCHING);
+        }
+
+        Account account = Account.builder()
+            .displayName(registerRequest.getUsername())
+            .password(passwordEncoder.encode(registerRequest.getPassword()))
+            .email(registerRequest.getEmail())
+            .firstName("Default")
+            .lastName("Name")
+            .role(AccountRole.USER)
+            .build();
+
+        try {
+            accountsRepository.save(account);
+            return accountMapper.toResponse(account);
+        } catch (Exception ex) {
+            throw new InternalServerException(ErrorMessageConstants.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

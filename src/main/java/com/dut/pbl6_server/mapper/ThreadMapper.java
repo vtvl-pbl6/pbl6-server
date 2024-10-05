@@ -50,7 +50,6 @@ public interface ThreadMapper {
 
     @Named("getContent")
     default String getContent(Thread thread) {
-        if (thread.getStatus() == ThreadStatus.CREATING) return null; // Don't show content when thread is creating
         String content = thread.getContent();
         List<HosResult> hosResults = thread.getHosResult();
         if (CommonUtils.String.isEmptyOrNull(content)) return null;
@@ -77,7 +76,6 @@ public interface ThreadMapper {
     @Named("getFiles")
     default List<File> getFiles(Thread thread) {
         try {
-            if (thread.getStatus() == ThreadStatus.CREATING) return null; // Don't show content when thread is creating
             if (CommonUtils.List.isEmptyOrNull(thread.getFiles())) return null;
             return thread.getFiles().stream().map(ThreadFile::getFile).toList();
         } catch (LazyInitializationException e) {
