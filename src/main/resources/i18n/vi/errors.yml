@@ -58,6 +58,15 @@ reset_password_code_invalid:
 reset_password_code_expired:
   code: ERR_FOR0102
   message: Mã đặt lại mật khẩu đã hết hạn!
+confirm_password_not_matching:
+  code: ERR_MAT0101
+  message: Xác nhận mật khẩu phải trùng khớp với mật khẩu!
+username_already_exists:
+  code: ERR_USE0101
+  message: Tên tài khoản đã tồn tại!
+email_already_exists:
+  code: ERR_EMA0102
+  message: Email đã được sử dụng!
 
 # Permission
 permission_not_found:

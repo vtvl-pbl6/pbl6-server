@@ -18,3 +18,24 @@ refresh_token_request:
     not_blank_string_validation:
       code: VAL_REF0101
       message: Refresh token cannot be blank
+
+# RegisterRequest
+register_request:
+  email:
+    not_blank:
+      code: VAL_RES0101
+      message: Email cannot be blank
+    email:
+      code: VAL_RES0102
+      message: Email must be a well-formed email address
+  password:
+    password_validation:
+      code: VAL_LOG0103
+      message: Password is required. It must be between 8 and 32 characters, containing at least 1 uppercase letter, 1 lowercase letter, 1 numeric character.
+  username:
+    not_blank:
+      code: VAL_RES0104
+      message: Username cannot be blank
+    size:
+      code: VAL_RES105
+      message: Username must be longer than 5 characters

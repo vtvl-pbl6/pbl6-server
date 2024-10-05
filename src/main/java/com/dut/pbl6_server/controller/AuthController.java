@@ -3,6 +3,7 @@ package com.dut.pbl6_server.controller;
 import com.dut.pbl6_server.annotation.auth.CurrentAccount;
 import com.dut.pbl6_server.dto.request.LoginRequest;
 import com.dut.pbl6_server.dto.request.RefreshTokenRequest;
+import com.dut.pbl6_server.dto.request.RegisterRequest;
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.service.AuthService;
 import jakarta.validation.Valid;
@@ -32,5 +33,10 @@ public class AuthController {
     public Object revokeToken(@CurrentAccount Account account) {
         authService.revokeToken(account, false);
         return null;
+    }
+
+    @PostMapping("/register")
+    public Object register(@Valid @RequestBody RegisterRequest registerRequest) {
+        return authService.register(registerRequest);
     }
 }

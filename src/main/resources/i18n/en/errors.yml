@@ -58,6 +58,15 @@ reset_password_code_invalid:
 reset_password_code_expired:
   code: ERR_FOR0102
   message: Reset password code is expired!
+confirm_password_not_matching:
+  code: ERR_MAT0101
+  message: Confirm password must match the password!
+username_already_exists:
+  code: ERR_USE0101
+  message: Username already exists!
+email_already_exists:
+  code: ERR_EMA0102
+  message: Email has been used!
 
 # Permission
 permission_not_found:
