@@ -109,6 +109,9 @@ file_not_found:
 delete_file_failed:
   code: ERR_FIL0103
   message: Delete file failed!
+file_size_limit_exceeded:
+  code: ERR_FIL0104
+  message: File size must be less than 100MB!
 
 # Thread
 thread_not_found:

@@ -11,7 +11,6 @@ import com.dut.pbl6_server.dto.respone.ThreadResponse;
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.Thread;
 import com.dut.pbl6_server.entity.ThreadFile;
-import com.dut.pbl6_server.entity.ThreadSharer;
 import com.dut.pbl6_server.entity.enums.ThreadStatus;
 import com.dut.pbl6_server.entity.enums.Visibility;
 import com.dut.pbl6_server.mapper.ThreadMapper;
@@ -168,6 +167,11 @@ public class ThreadServiceImpl implements ThreadService {
     @Override
     public DataWithPage<ThreadResponse> getFollowingThreads(Long userId, Pageable pageable) {
         var followingUserIds = followersRepository.findAllByFollowerId(userId).stream().map(f -> f.getUser().getId()).toList();
+
+        // If the current user is not following anyone
+        if (CommonUtils.List.isEmptyOrNull(followingUserIds))
+            return new DataWithPage<>(List.of(), PageUtils.makePageInfo(Page.empty()));
+
         var page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusesNotIn(
             followingUserIds,
             List.of(Visibility.PUBLIC, Visibility.FRIEND_ONLY),
