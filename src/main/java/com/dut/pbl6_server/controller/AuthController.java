@@ -1,15 +1,20 @@
 package com.dut.pbl6_server.controller;
 
-import com.dut.pbl6_server.annotation.auth.PreAuthorizeUser;
+import com.dut.pbl6_server.annotation.auth.CurrentAccount;
 import com.dut.pbl6_server.dto.request.LoginRequest;
 import com.dut.pbl6_server.dto.request.RefreshTokenRequest;
+import com.dut.pbl6_server.dto.request.RegisterRequest;
+import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController("AuthController")
-@RequestMapping("/v1/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
@@ -24,9 +29,14 @@ public class AuthController {
         return authService.refreshToken(refreshTokenRequest, false);
     }
 
-    @GetMapping("/test")
-    @PreAuthorizeUser
-    public Object test() {
-        return "AuthController";
+    @PostMapping("/revoke-token")
+    public Object revokeToken(@CurrentAccount Account account) {
+        authService.revokeToken(account, false);
+        return null;
+    }
+
+    @PostMapping("/register")
+    public Object register(@Valid @RequestBody RegisterRequest registerRequest) {
+        return authService.register(registerRequest);
     }
 }

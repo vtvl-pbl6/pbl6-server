@@ -1,7 +1,5 @@
 server:
   port: 8080
-  servlet:
-    context-path: /api
 
 spring:
   main:
@@ -9,7 +7,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 10MB
-      max-request-size: 10MB
+      max-request-size: 100MB
   datasource:
     url: jdbc:postgresql://${SPRING_DATASOURCE_HOST}:${SPRING_DATASOURCE_PORT}/${SPRING_DATASOURCE_NAME}
     username: ${SPRING_DATASOURCE_USERNAME}
@@ -58,3 +56,6 @@ application:
     cloud-name: ${CLOUDINARY_CLOUD_NAME}
     api-key: ${CLOUDINARY_API_KEY}
     api-secret: ${CLOUDINARY_API_SECRET}
+  content-moderation-server:
+    url: ${CONTENT_MODERATION_SERVER_URL}
+    access-key: ${CONTENT_MODERATION_SERVER_ACCESS_KEY}

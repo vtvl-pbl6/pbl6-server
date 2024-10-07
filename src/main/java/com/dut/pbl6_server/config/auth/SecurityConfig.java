@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -26,20 +27,48 @@ public class SecurityConfig {
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthFilterConfig jwtAuthFilterConfig;
 
+    /**
+     * This method is used to configure security for URLs that start with "/api".
+     * These URLs are permitted to access without authentication.
+     * <p>
+     * <b>Reason for permit all: We use method security to control access to the APIs.</b>
+     *
+     * @param http: The HttpSecurity object that is used to configure security.
+     * @return A filter chain that is responsible for all security processing.
+     * @throws Exception: If an error occurs.
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(AbstractHttpConfigurer::disable)
             .csrf(AbstractHttpConfigurer::disable)
             .securityMatcher(new AntPathRequestMatcher("/api/**"))
-            .authorizeHttpRequests(authorize -> authorize
-                .anyRequest()
-                .authenticated())
+            .authorizeHttpRequests(authorize ->
+                authorize.anyRequest().permitAll() // permit all so that authenticated with method security
+            )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationManager(authenticationManagerBean())
             .authenticationProvider(authenticationProvider)
             .addFilterBefore(jwtAuthFilterConfig, UsernamePasswordAuthenticationFilter.class)
             .httpBasic(Customizer.withDefaults());
+        return http.build();
+    }
+
+    /**
+     * This method is used to configure to permit all requests to WebSocket URLs.
+     *
+     * @param http: The HttpSecurity object that is used to configure security.
+     * @return A filter chain that is responsible for all security processing.
+     * @throws Exception: If an error occurs.
+     */
+    @Bean
+    public SecurityFilterChain wsFilterChain(HttpSecurity http) throws Exception {
+        http
+            .cors(AbstractHttpConfigurer::disable)
+            .csrf(AbstractHttpConfigurer::disable)
+            .securityMatcher(new AntPathRequestMatcher("/ws/**"))
+            .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+            .headers(httpSecurityHeadersConfigurer -> httpSecurityHeadersConfigurer.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
         return http.build();
     }
 

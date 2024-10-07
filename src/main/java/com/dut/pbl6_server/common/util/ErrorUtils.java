@@ -1,12 +1,11 @@
 package com.dut.pbl6_server.common.util;
 
-import com.dut.pbl6_server.common.constant.CommonConstants;
 import com.dut.pbl6_server.common.constant.ErrorMessageConstants;
+import com.dut.pbl6_server.common.enums.LocaleFile;
 import com.dut.pbl6_server.common.exception.InvalidDataException;
 import com.dut.pbl6_server.common.model.ErrorResponse;
 import jakarta.validation.ConstraintViolation;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -18,12 +17,9 @@ public final class ErrorUtils {
      * @param error String error
      * @return ErrorResponse
      */
-    @SuppressWarnings("unchecked")
     public static ErrorResponse getExceptionError(String error) {
-        Map<String, Object> errors = CommonUtils.getValueFromYAMLFile(CommonConstants.ERROR_YML_FILE);
-        Map<String, Object> objError = (Map<String, Object>) errors.get(error);
-        String code = (String) objError.get("code");
-        String message = (String) objError.get("message");
+        String code = I18nUtils.tr(error + ".code", LocaleFile.ERROR);
+        String message = I18nUtils.tr(error + ".message", LocaleFile.ERROR);
         return new ErrorResponse(code, message);
     }
 
@@ -35,22 +31,19 @@ public final class ErrorUtils {
      * @param error     String error
      * @return ErrorResponse
      */
-    @SuppressWarnings("unchecked")
     public static ErrorResponse getValidationError(String resource, String fieldName, String error) {
         if (fieldName.contains("[")) {
             fieldName = handleFieldName(fieldName);
         }
-        Map<String, Object> errors = CommonUtils.getValueFromYAMLFile(CommonConstants.VALIDATION_YML_FILE);
-        Map<String, Object> fields = (Map<String, Object>) errors.get(resource);
-        if (fields == null)
-            new ErrorResponse(ErrorMessageConstants.INTERNAL_SERVER_ERROR_CODE,
-                String.format("Don't have resource: {%s} in validation.yml", resource));
-        Map<String, Object> objErrors = (Map<String, Object>) Objects.requireNonNull(fields).get(fieldName);
-        Map<String, Object> objError = (Map<String, Object>) objErrors.get(error);
-        if (objError == null)
-            new ErrorResponse(ErrorMessageConstants.INTERNAL_SERVER_ERROR_CODE, "objError is null");
-        String code = (String) Objects.requireNonNull(objError).get("code");
-        String message = (String) objError.get("message");
+
+        String code = I18nUtils.tr(String.format("%s.%s.%s.code", resource, fieldName, error), LocaleFile.VALIDATION);
+        String message = I18nUtils.tr(String.format("%s.%s.%s.message", resource, fieldName, error), LocaleFile.VALIDATION);
+
+        if (code == null || message == null) {
+            return new ErrorResponse(ErrorMessageConstants.INTERNAL_SERVER_ERROR_CODE,
+                String.format("Don't have resource: {%s} in %s/validations.yml", resource, I18nUtils.getCurrentLanguage().getValue()));
+        }
+
         return new ErrorResponse(code, message);
     }
 

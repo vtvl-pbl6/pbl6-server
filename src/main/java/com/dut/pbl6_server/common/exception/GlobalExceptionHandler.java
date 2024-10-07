@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -170,6 +171,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      * 6. NoResourceFoundException
      * 7. HttpMessageNotReadable
      * 8. HttpMessageNotWriteable
+     * 9. MaxUploadSizeExceededException
      */
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
@@ -274,6 +276,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         @Nonnull WebRequest request) {
         AbstractResponse response = AbstractResponse
             .error(new ErrorResponse(ErrorMessageConstants.BAD_REQUEST_ERROR_CODE, ex.getMessage()));
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
+        @Nonnull MaxUploadSizeExceededException ex,
+        @Nonnull HttpHeaders headers,
+        @Nonnull HttpStatusCode status,
+        @Nonnull WebRequest request
+    ) {
+        AbstractResponse response = AbstractResponse.error(
+            ErrorUtils.getExceptionError(ErrorMessageConstants.FILE_SIZE_LIMIT_EXCEEDED)
+        );
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }

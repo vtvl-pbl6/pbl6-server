@@ -1,0 +1,139 @@
+# Common
+internal_server_error:
+  code: ERR_SER0101
+  message: Lỗi máy chủ nội bộ!
+bad_request_error:
+  code: ERR_SER0102
+  message: Lỗi yêu cầu không hợp lệ!
+page_not_found:
+  code: ERR_SER0103
+  message: Không tìm thấy trang!
+forbidden:
+  code: ERR_AUTH0101
+  message: Truy cập bị từ chối! Bạn không có quyền truy cập!
+unauthorized:
+  code: ERR_AUTH0102
+  message: Bạn không có quyền truy cập vào dữ liệu này!
+required_body_in_request:
+  code: ERR_REQ0101
+  message: Yêu cầu phải có body!
+invalid_uuid:
+  code: ERR_REQ0102
+  message: UUID không hợp lệ!
+invalid_enum:
+  code: ERR_REQ0103
+  message: Enum không hợp lệ!
+
+# Authentication
+api_key_is_required:
+  code: ERR_API0101
+  message: Yêu cầu có khóa API!
+api_key_not_match:
+  code: ERR_API0102
+  message: Bạn không có quyền truy cập vào API này!
+invalid_token:
+  code: ERR_TOK0101
+  message: Token không hợp lệ!
+expired_token:
+  code: ERR_TOK0102
+  message: Token đã hết hạn!
+revoked_token:
+  code: ERR_TOK0103
+  message: Token đã bị thu hồi!
+invalid_refresh_token:
+  code: ERR_TOK0201
+  message: Refresh token không hợp lệ!
+expired_refresh_token:
+  code: ERR_TOK0202
+  message: Refresh token đã hết hạn!
+revoked_refresh_token:
+  code: ERR_TOK0203
+  message: Refresh token đã bị thu hồi!
+refresh_token_not_found:
+  code: ERR_TOK0204
+  message: Không tìm thấy refresh token!
+reset_password_code_invalid:
+  code: ERR_FOR0101
+  message: Mã đặt lại mật khẩu không hợp lệ!
+reset_password_code_expired:
+  code: ERR_FOR0102
+  message: Mã đặt lại mật khẩu đã hết hạn!
+confirm_password_not_matching:
+  code: ERR_MAT0101
+  message: Xác nhận mật khẩu phải trùng khớp với mật khẩu!
+username_already_exists:
+  code: ERR_USE0101
+  message: Tên tài khoản đã tồn tại!
+email_already_exists:
+  code: ERR_EMA0102
+  message: Email đã được sử dụng!
+
+# Permission
+permission_not_found:
+  code: ERR_PER0102
+  message: Không tìm thấy quyền!
+permission_is_require:
+  code: ERR_PER0103
+  message: Yêu cầu có quyền!
+
+# Account
+account_not_found:
+  code: ERR_ACC0101
+  message: Không tìm thấy tài khoản!
+incorrect_email_or_password:
+  code: ERR_ACC0103
+  message: Email hoặc mật khẩu không chính xác!
+login_failed:
+  code: ERR_ACC0104
+  message: Đăng nhập thất bại!
+account_is_disabled:
+  code: ERR_ACC0105
+  message: Tài khoản đã bị vô hiệu hóa!
+account_is_active:
+  code: ERR_ACC0106
+  message: Tài khoản đang hoạt động!
+account_is_not_active:
+  code: ERR_ACC0107
+  message: Tài khoản chưa được kích hoạt!
+account_id_is_required:
+  code: ERR_ACC0108
+  message: Yêu cầu phải có id tài khoản!
+
+# File
+upload_file_failed:
+  code: ERR_FIL0101
+  message: Tải tệp lên thất bại!
+file_not_found:
+  code: ERR_FIL0102
+  message: Không tìm thấy tệp tin!
+delete_file_failed:
+  code: ERR_FIL0103
+  message: Xóa tệp thất bại!
+file_size_limit_exceeded:
+  code: ERR_FIL0104
+  message: Kích thước tệp tin quá lớn, phải nhỏ hơn 100MB!
+
+# Thread
+thread_not_found:
+  code: ERR_THR0101
+  message: Không tìm thấy bài viết hợp lệ!
+thread_not_available:
+  code: ERR_THR0102
+  message: Bài viết này không khả dụng!
+thread_request_invalid:
+  code: ERR_THR0103
+  message: Bài viết mới phải có nội dung hoặc tệp tin đính kèm!
+thread_parent_not_found:
+  code: ERR_THR0104
+  message: Bài viết gốc không tồn tại!
+thread_parent_not_available:
+  code: ERR_THR0105
+  message: Bài viết gốc không khả dụng!
+private_thread_can_not_have_comment:
+  code: ERR_THR0106
+  message: Bạn không thể bình luận vào bài viết đang ở chế độ riêng tư!
+
+# Repost
+repost_not_found:
+  code: ERR_REP0101
+  message: Bạn không có bài đăng lại nào!

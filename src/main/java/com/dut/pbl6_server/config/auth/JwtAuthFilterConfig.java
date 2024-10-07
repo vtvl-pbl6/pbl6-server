@@ -8,8 +8,8 @@ import com.dut.pbl6_server.common.model.AbstractResponse;
 import com.dut.pbl6_server.common.model.ErrorResponse;
 import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.common.util.ErrorUtils;
+import com.dut.pbl6_server.common.util.I18nUtils;
 import com.dut.pbl6_server.entity.Account;
-import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,18 +36,26 @@ public class JwtAuthFilterConfig extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
 
     @Override
-    protected void doFilterInternal(
-        @Nonnull HttpServletRequest request,
-        @Nonnull HttpServletResponse response,
-        @Nonnull FilterChain filterChain
-    ) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
+            // Handle pre-flight requests (OPTIONS)
+            if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // Allow if the request is from web socket
+            if (request.getRequestURI().startsWith("/ws")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             // Check API key
             final String apiKey = request.getHeader(apiKeyHeader);
             if (CommonUtils.String.isEmptyOrNull(apiKey))
                 throw new UnauthorizedException(ErrorMessageConstants.API_KEY_IS_REQUIRED);
             if (!apiKey.equals(apiKeyValue))
-                throw new ForbiddenException(ErrorMessageConstants.API_KAY_NOT_MATCH);
+                throw new ForbiddenException(ErrorMessageConstants.API_KEY_NOT_MATCH);
 
             // Jwt token
             final String authorizationHeader = request.getHeader("Authorization");
@@ -64,6 +72,9 @@ public class JwtAuthFilterConfig extends OncePerRequestFilter {
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
             authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+            // Set current language
+            I18nUtils.setLanguage(userDetails.getLanguage());
 
             filterChain.doFilter(request, response);
         } catch (ForbiddenException | UnauthorizedException ex) {

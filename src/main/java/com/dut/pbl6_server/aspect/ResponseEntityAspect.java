@@ -12,12 +12,19 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 public class ResponseEntityAspect {
-
     @Pointcut("execution(* com.dut.pbl6_server.controller.*.*(..))")
-    public void controller() {
+    public void userControllers() {
     }
 
-    @Around("controller()")
+    @Pointcut("execution(* com.dut.pbl6_server.controller.admin.*.*(..))")
+    public void adminControllers() {
+    }
+
+    @Pointcut("@annotation(com.dut.pbl6_server.annotation.aspect.SkipHttpResponseWrapper)")
+    public void skipAnnotation() {
+    }
+
+    @Around("(userControllers() || adminControllers()) && !skipAnnotation()")
     public ResponseEntity<AbstractResponse> modifyResponseAfterController(ProceedingJoinPoint joinPoint) throws Throwable {
         var val = joinPoint.proceed();
         AbstractResponse response = null;

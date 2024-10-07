@@ -1,7 +1,9 @@
 package com.dut.pbl6_server.controller.admin;
 
+import com.dut.pbl6_server.annotation.auth.CurrentAccount;
 import com.dut.pbl6_server.dto.request.LoginRequest;
 import com.dut.pbl6_server.dto.request.RefreshTokenRequest;
+import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController("AdminAuthController")
-@RequestMapping("/v1/admin/auth")
+@RequestMapping("/api/v1/admin/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
@@ -24,5 +26,11 @@ public class AuthController {
     @PostMapping("/refresh-token")
     public Object refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
         return authService.refreshToken(refreshTokenRequest, true);
+    }
+
+    @PostMapping("/revoke-token")
+    public Object revokeToken(@CurrentAccount Account account) {
+        authService.revokeToken(account, true);
+        return null;
     }
 }

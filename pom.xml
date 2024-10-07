@@ -24,6 +24,7 @@
         <redis.version>3.2.4</redis.version>
         <jedis.version>5.1.2</jedis.version>
         <cloudinary.version>1.36.0</cloudinary.version>
+        <http-client.version>4.12.0</http-client.version>
     </properties>
     <dependencies>
         <!--     FOR JSON WEB TOKEN & JSON UTIL     -->
@@ -140,6 +141,17 @@
             <groupId>com.cloudinary</groupId>
             <artifactId>cloudinary-http44</artifactId>
             <version>${cloudinary.version}</version>
+        </dependency>
+        <!--        FOR WEBSOCKET        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+        <!--        FOR HTTP CLIENT      -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${http-client.version}</version>
         </dependency>
     </dependencies>
 

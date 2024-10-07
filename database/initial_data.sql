@@ -10,7 +10,7 @@ create type account_role as enum ('ADMIN', 'USER');
 
 create type account_gender as enum ('MALE', 'FEMALE', 'OTHER');
 
-create type thread_status as enum ('ACTIVE', 'INACTIVE', 'PENDING');
+create type thread_status as enum ('CREATING', 'CREATE_DONE', 'PENDING');
 
 
 --
@@ -20,15 +20,16 @@ create type thread_status as enum ('ACTIVE', 'INACTIVE', 'PENDING');
 -- File table
 create table if not exists files
 (
-    id         bigserial
+    id          bigserial
         primary key,
-    name       varchar(400)                        not null,
-    url        varchar(400)                        not null,
-    size       integer                             not null,
-    mime_type  varchar(255)                        not null,
-    created_at timestamp default CURRENT_TIMESTAMP not null,
-    updated_at timestamp,
-    deleted_at timestamp
+    name        varchar(400)                        not null,
+    url         varchar(400)                        not null,
+    size        integer                             not null,
+    mime_type   varchar(255)                        not null,
+    nsfw_result jsonb,
+    created_at  timestamp default CURRENT_TIMESTAMP not null,
+    updated_at  timestamp,
+    deleted_at  timestamp
 );
 
 -- Account table
@@ -108,17 +109,18 @@ create table if not exists threads
 (
     id               bigserial
         primary key,
-    author_id        bigint                                        not null
+    author_id        bigint                                          not null
         references accounts(id) on delete cascade,
     parent_thread_id bigint
         references threads(id) on delete cascade,
     content          text,
-    reaction_num     integer       default 0                       not null,
-    shared_num       integer       default 0                       not null,
-    is_pin           boolean       default false                   not null,
-    status           thread_status default 'ACTIVE'::thread_status not null,
-    visibility       visibility    default 'PUBLIC'::visibility    not null,
-    created_at       timestamp     default CURRENT_TIMESTAMP       not null,
+    hos_result       jsonb,
+    reaction_num     integer       default 0                         not null,
+    shared_num       integer       default 0                         not null,
+    is_pin           boolean       default false                     not null,
+    status           thread_status default 'CREATING'::thread_status not null,
+    visibility       visibility    default 'PUBLIC'::visibility      not null,
+    created_at       timestamp     default CURRENT_TIMESTAMP         not null,
     updated_at       timestamp,
     deleted_at       timestamp
 );

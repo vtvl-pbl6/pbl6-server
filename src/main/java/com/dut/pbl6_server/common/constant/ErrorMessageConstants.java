@@ -20,12 +20,13 @@ public final class ErrorMessageConstants {
     public static final String UPLOAD_FILE_FAILED = "upload_file_failed";
     public static final String FILE_NOT_FOUND = "file_not_found";
     public static final String DELETE_FILE_FAILED = "delete_file_failed";
+    public static final String FILE_SIZE_LIMIT_EXCEEDED = "file_size_limit_exceeded";
 
     /**
      * Authentication
      */
     public static final String API_KEY_IS_REQUIRED = "api_key_is_required";
-    public static final String API_KAY_NOT_MATCH = "api_key_not_match";
+    public static final String API_KEY_NOT_MATCH = "api_key_not_match";
     public static final String INVALID_TOKEN = "invalid_token";
     public static final String EXPIRED_TOKEN = "expired_token";
     public static final String REVOKED_TOKEN = "revoked_token";
@@ -35,6 +36,9 @@ public final class ErrorMessageConstants {
     public static final String REFRESH_TOKEN_NOT_FOUND = "refresh_token_not_found";
     public static final String ACCOUNT_IS_ACTIVE = "account_is_active";
     public static final String ACCOUNT_IS_NOT_ACTIVE = "account_is_not_active";
+    public static final String USERNAME_ALREADY_EXISTS = "username_already_exists";
+    public static final String EMAIL_ALREADY_EXISTS = "email_already_exists";
+    public static final String CONFIRM_PASSWORD_NOT_MATCHING = "confirm_password_not_matching";
 
 
     /**
@@ -44,6 +48,21 @@ public final class ErrorMessageConstants {
     public static final String INCORRECT_EMAIL_OR_PASSWORD = "incorrect_email_or_password";
     public static final String ACCOUNT_IS_DISABLED = "account_is_disabled";
     public static final String ACCOUNT_ID_IS_REQUIRED = "account_id_is_required";
+
+    /**
+     * Thread
+     */
+    public static final String THREAD_NOT_FOUND = "thread_not_found";
+    public static final String THREAD_NOT_AVAILABLE = "thread_not_available";
+    public static final String THREAD_REQUEST_INVALID = "thread_request_invalid";
+    public static final String THREAD_PARENT_NOT_FOUND = "thread_parent_not_found";
+    public static final String THREAD_PARENT_NOT_AVAILABLE = "thread_parent_not_available";
+    public static final String PRIVATE_THREAD_CAN_NOT_HAVE_COMMENT = "private_thread_can_not_have_comment";
+
+    /**
+     * Repost
+     */
+    public static final String REPOST_NOT_FOUND = "repost_not_found";
 
     private ErrorMessageConstants() {
     }
