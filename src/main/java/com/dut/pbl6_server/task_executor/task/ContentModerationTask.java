@@ -76,7 +76,7 @@ public class ContentModerationTask extends BaseTask<ContentModerationResult> {
                 ).execute();
 
                 String responseBody = execute.body() != null ? execute.body().string() : null;
-                log.info(String.format("[%s] - %s: \n%s", Thread.currentThread().getName(), url, responseBody)); // Log the response body
+                log.info(String.format("%s\n%s", url, responseBody)); // Log the response body
                 AbstractResponse response = CommonUtils.Json.decode(responseBody, AbstractResponse.class);
                 isTextModeratedDone = true;
                 onDone.call(new ContentModerationResult(response, true, isImageModeratedDone)); // Notify the caller
