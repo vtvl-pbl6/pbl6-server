@@ -13,11 +13,11 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @Table(name = "notifications")
 public class Notification extends AbstractEntity {
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id")
     private Account sender;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiver_id")
     private Account receiver;
 
