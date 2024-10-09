@@ -93,8 +93,8 @@ create table if not exists notifications
         primary key,
     sender_id   bigint
         references accounts(id) on delete set null,
-    receiver_id bigint                              not null
-        references accounts(id) on delete cascade,
+    receiver_id bigint
+        references accounts(id) on delete set null,
     object_id   bigint,
     type        varchar(255)                        not null,
     content     varchar(1000)                       not null,
