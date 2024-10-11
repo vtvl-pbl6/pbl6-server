@@ -15,8 +15,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @JsonSnakeCaseNaming
 public class NotificationResponse extends AbstractDTO {
-    private Long senderId;
-    private Long receiverId;
+    private AccountResponse sender;
+    private AccountResponse receiver;
     private Long objectId;
     private String type;
     private String content;

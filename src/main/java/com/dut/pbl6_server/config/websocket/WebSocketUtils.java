@@ -41,10 +41,10 @@ public class WebSocketUtils {
 
     public void sendToAllSubscribers(WebSocketDestination destination, Object payload) {
         // Check if destination is valid
-        if (!destination.getName().startsWith("/public"))
+        if (!destination.getValue().startsWith("/public"))
             throw new BadRequestException("[from sendToAllSubscribers] Destination must start with '/public'");
 
-        messagingTemplate.convertAndSend(destination.getName(), payload);
+        messagingTemplate.convertAndSend(destination.getValue(), payload);
     }
 
     public void sendToSubscriber(String email, WebSocketDestination destination, Object payload) {
@@ -54,10 +54,10 @@ public class WebSocketUtils {
             throw new BadRequestException("Subscriber not found");
 
         // Check if destination is valid
-        if (destination.getName().startsWith("/public"))
+        if (destination.getValue().startsWith("/public"))
             throw new BadRequestException("[from sendToSubscriber] Destination must not start with '/public'");
 
-        messagingTemplate.convertAndSendToUser(email, destination.getName(), payload);
+        messagingTemplate.convertAndSendToUser(email, destination.getValue(), payload);
     }
 
     public void sendError(String email, Object message) {
@@ -71,6 +71,6 @@ public class WebSocketUtils {
         };
 
         // Send error message
-        messagingTemplate.convertAndSendToUser(email, destination.getName(), message);
+        messagingTemplate.convertAndSendToUser(email, destination.getValue(), message);
     }
 }

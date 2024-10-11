@@ -1,1 +1,5 @@
 # Notification
+notification:
+  follow: "<b>{0}</b> has started following you!" # {0} is the display name of the follower
+  comment: "<b>{0}</b> has commented on your post: {1}" # {0} is the display name of the commenter, {1} is the comment
+  comment_file: "<b>{0}</b> has commented on your post with images!" # {0} is the display name of the commenter

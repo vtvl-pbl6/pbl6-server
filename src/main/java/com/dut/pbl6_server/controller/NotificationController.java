@@ -1,8 +1,11 @@
 package com.dut.pbl6_server.controller;
 
-import com.dut.pbl6_server.annotation.aspect.SkipHttpResponseWrapper;
+import com.dut.pbl6_server.common.enums.NotificationType;
 import com.dut.pbl6_server.common.enums.WebSocketDestination;
 import com.dut.pbl6_server.config.websocket.WebSocketUtils;
+import com.dut.pbl6_server.repository.jpa.AccountsRepository;
+import com.dut.pbl6_server.repository.jpa.ThreadsRepository;
+import com.dut.pbl6_server.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -15,17 +18,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class NotificationController {
     private final WebSocketUtils webSocketUtils;
+    private final NotificationService notificationService;
+    private final AccountsRepository accountsRepository;
+    private final ThreadsRepository threadsRepository;
+
 
     @GetMapping
     public Object test() {
-        webSocketUtils.sendError("user@gmail.com", "");
-        webSocketUtils.sendToAllSubscribers(WebSocketDestination.PUBLIC_USER, "Hello from public");
-        webSocketUtils.sendToSubscriber("user@gmail.com", WebSocketDestination.PRIVATE_USER_NOTIFICATION, "Hello from private");
+        notificationService.sendNotification(
+            accountsRepository.findByEmail("admin@gmail.com").orElse(null),
+            accountsRepository.findByEmail("user@gmail.com").orElse(null),
+            NotificationType.FOLLOW,
+            null
+        );
         return null;
     }
 
     @MessageMapping("/message")
-    @SkipHttpResponseWrapper
     public String sendMessage(@Payload String payload) {
         webSocketUtils.sendToAllSubscribers(WebSocketDestination.PUBLIC_USER, payload);
         return payload;

@@ -13,11 +13,11 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @Table(name = "notifications")
 public class Notification extends AbstractEntity {
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "sender_id")
     private Account sender;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "receiver_id")
     private Account receiver;
 
@@ -27,7 +27,7 @@ public class Notification extends AbstractEntity {
     private String type;
 
     @Column(nullable = false)
-    private String content;
+    private String content; // In Vietnamese by default
 
     @Column(nullable = false)
     @Builder.Default

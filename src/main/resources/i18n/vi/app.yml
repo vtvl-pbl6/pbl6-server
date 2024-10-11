@@ -1,1 +1,5 @@
 # Notification
+notification:
+  follow: "<b>{0}</b> đã bắt đầu theo dõi bạn!"
+  comment: "<b>{0}</b> đã bình luận vào bài viết của bạn: {1}"
+  comment_file: "<b>{0}</b> đã bình luận vào bài viết của bạn bằng hình ảnh!"
