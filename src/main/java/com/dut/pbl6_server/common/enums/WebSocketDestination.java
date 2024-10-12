@@ -26,16 +26,28 @@ public enum WebSocketDestination {
 
     private final String value;
 
-    public static WebSocketDestination getDestination(NotificationType type, AccountRole receiverRole) {
-        if (receiverRole == null)
+    public static WebSocketDestination getDestination(NotificationType type, AccountRole receiverRole, AccountRole senderRole) {
+        // If both receiver and sender are null, it's a public user notification
+        if (receiverRole == null && senderRole == null)
             return PUBLIC_USER;
 
+        // If receiver is null, it's a public notification depending on the sender role
+        if (receiverRole == null)
+            return switch (senderRole) {
+                case USER -> PUBLIC_USER;
+                case ADMIN -> PUBLIC_ADMIN;
+            };
+
         return switch (type) {
-            case FOLLOW, COMMENT -> switch (receiverRole) {
+            case FOLLOW,
+                 COMMENT,
+                 REQUEST_THREAD_MODERATION,
+                 REQUEST_THREAD_MODERATION_FAILED,
+                 REQUEST_THREAD_MODERATION_SUCCESS -> switch (receiverRole) {
                 case USER -> PRIVATE_USER_NOTIFICATION;
                 case ADMIN -> PRIVATE_ADMIN_NOTIFICATION;
             };
-            case LIKE, SHARE -> switch (receiverRole) {
+            case LIKE, SHARE, CREATE_THREAD_DONE -> switch (receiverRole) {
                 case USER -> PRIVATE_USER_THREAD;
                 case ADMIN -> PRIVATE_ADMIN_THREAD;
             };

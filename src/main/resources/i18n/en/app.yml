@@ -1,5 +1,14 @@
 # Notification
 notification:
-  follow: "<b>{0}</b> has started following you!" # {0} is the display name of the follower
-  comment: "<b>{0}</b> has commented on your post: {1}" # {0} is the display name of the commenter, {1} is the comment
-  comment_file: "<b>{0}</b> has commented on your post with images!" # {0} is the display name of the commenter
+  follow: "<b>{0}</b> has started following you."  # {0} is the display name of the follower
+  comment: "<b>{0}</b> commented on your post: {1}"  # {0} is the display name of the commenter, {1} is the comment
+  comment_file: "<b>{0}</b> commented on your post with images"  # {0} is the display name of the commenter
+  request_thread_moderation:
+    with_content: "<b>{0}</b> has requested your review for the post: {1}"  # {0} is the display name of the requester, {1} is the post
+    with_file: "<b>{0}</b> has requested your review for a post containing images"  # {0} is the display name of the requester
+  request_thread_moderation_failed:
+    with_content: "Your post moderation has failed: {0}"  # {0} is the post title or description
+    with_file: "Your post moderation with images has failed"
+  request_thread_moderation_success:
+    with_content: "Your post has been successfully moderated: {0}"  # {0} is the post title or description
+    with_file: "Your post with images has been successfully moderated"

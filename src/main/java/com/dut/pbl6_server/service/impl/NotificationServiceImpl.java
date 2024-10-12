@@ -59,7 +59,11 @@ public class NotificationServiceImpl implements NotificationService {
 
         // Send notification (via WebSocket) to specific subscriber if receiver is not null else send to all subscribers
         if (receiver != null)
-            webSocketUtils.sendToSubscriber(receiver.getEmail(), WebSocketDestination.getDestination(type, receiver.getRole()), response);
+            webSocketUtils.sendToSubscriber(
+                receiver.getEmail(),
+                WebSocketDestination.getDestination(type, receiver.getRole(), sender != null ? sender.getRole() : null),
+                response
+            );
         else
             webSocketUtils.sendToAllSubscribers(WebSocketDestination.PUBLIC_USER, response);
         return response;
@@ -67,24 +71,33 @@ public class NotificationServiceImpl implements NotificationService {
 
     private String getContent(NotificationType type, Account sender, String language, AbstractEntity object) {
         I18nUtils.setLanguage(language);
-        return switch (type) {
-            case FOLLOW -> sender != null
-                ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName())
-                : null;
-            case COMMENT -> {
-                try {
-                    if (sender != null && object != null) {
-                        var comment = (Thread) object;
-                        yield CommonUtils.String.isNotEmptyOrNull(comment.getContent())
-                            ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName(), comment.getContent())
-                            : I18nUtils.tr("notification.comment_file", LocaleFile.APP, sender.getDisplayName());
-                    }
-                    yield null;
-                } catch (Exception e) {
-                    yield null;
+        try {
+            return switch (type) {
+                case FOLLOW -> sender != null
+                    ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName())
+                    : null;
+                case COMMENT -> {
+                    var comment = (Thread) object;
+                    yield CommonUtils.String.isNotEmptyOrNull(comment.getContent())
+                        ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName(), comment.getContent())
+                        : I18nUtils.tr("notification.comment_file", LocaleFile.APP, sender.getDisplayName());
                 }
-            }
-            case LIKE, SHARE -> null;
-        };
+                case REQUEST_THREAD_MODERATION -> {
+                    var thread = (Thread) object;
+                    yield CommonUtils.String.isNotEmptyOrNull(thread.getContent())
+                        ? I18nUtils.tr(String.format("notification.%s.with_content", type.getValue()), LocaleFile.APP, sender.getDisplayName(), thread.getContent())
+                        : I18nUtils.tr(String.format("notification.%s.with_file", type.getValue()), LocaleFile.APP, sender.getDisplayName());
+                }
+                case REQUEST_THREAD_MODERATION_FAILED, REQUEST_THREAD_MODERATION_SUCCESS -> {
+                    var thread = (Thread) object;
+                    yield CommonUtils.String.isNotEmptyOrNull(thread.getContent())
+                        ? I18nUtils.tr(String.format("notification.%s.with_content", type.getValue()), LocaleFile.APP, thread.getContent())
+                        : I18nUtils.tr(String.format("notification.%s.with_file", type.getValue()), LocaleFile.APP);
+                }
+                case LIKE, SHARE, CREATE_THREAD_DONE -> null;
+            };
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
