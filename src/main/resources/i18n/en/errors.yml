@@ -98,6 +98,18 @@ account_is_not_active:
 account_id_is_required:
   code: ERR_ACC0108
   message: Account id is required!
+account_is_not_available:
+  code: ERR_ACC0109
+  message: Account is not available!
+cannot_follow_yourself:
+  code: ERR_ACC0110
+  message: You can not follow yourself!
+already_followed:
+  code: ERR_ACC0111
+  message: You have already followed this account!
+cannot_follow_admin:
+  code: ERR_ACC0112
+  message: You can not follow admin account!
 
 # File
 upload_file_failed:

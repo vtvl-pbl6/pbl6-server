@@ -39,8 +39,9 @@ public final class ErrorMessageConstants {
     public static final String USERNAME_ALREADY_EXISTS = "username_already_exists";
     public static final String EMAIL_ALREADY_EXISTS = "email_already_exists";
     public static final String CONFIRM_PASSWORD_NOT_MATCHING = "confirm_password_not_matching";
-
-
+    public static final String ALREADY_FOLLOWED = "already_followed";
+    public static final String CANNOT_FOLLOW_ADMIN = "cannot_follow_admin";
+    
     /**
      * Account
      */
@@ -48,6 +49,8 @@ public final class ErrorMessageConstants {
     public static final String INCORRECT_EMAIL_OR_PASSWORD = "incorrect_email_or_password";
     public static final String ACCOUNT_IS_DISABLED = "account_is_disabled";
     public static final String ACCOUNT_ID_IS_REQUIRED = "account_id_is_required";
+    public static final String ACCOUNT_IS_NOT_AVAILABLE = "account_is_not_available";
+    public static final String CANNOT_FOLLOW_YOURSELF = "cannot_follow_yourself";
 
     /**
      * Thread

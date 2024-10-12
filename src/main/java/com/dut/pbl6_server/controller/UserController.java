@@ -2,16 +2,11 @@ package com.dut.pbl6_server.controller;
 
 import com.dut.pbl6_server.annotation.auth.CurrentAccount;
 import com.dut.pbl6_server.annotation.auth.PreAuthorizeUser;
-import com.dut.pbl6_server.common.constant.ErrorMessageConstants;
-import com.dut.pbl6_server.common.exception.NotFoundObjectException;
-import com.dut.pbl6_server.dto.respone.AccountResponse;
+import com.dut.pbl6_server.common.util.PageUtils;
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.service.AccountService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController("UserController")
 @RequestMapping("/api/v1/user")
@@ -21,10 +16,28 @@ public class UserController {
     private final AccountService accountService;
 
     @GetMapping
-    public Object getUserInfo(
-        @CurrentAccount Account account
-    ) {
-        return accountService.getAccountInfo(account);
+    public Object getUserInfo(@CurrentAccount Account account, @RequestParam(name = "id", required = false) Long id) {
+        return id != null
+            ? accountService.getAccountInfoById(account, id)
+            : accountService.getAccountInfo(account);
     }
 
+    @GetMapping("/search")
+    public Object searchUser(
+        @CurrentAccount Account account,
+        @RequestParam(name = "display_name", required = true) String displayName,
+        @RequestParam(name = "page", required = false) Integer page,
+        @RequestParam(name = "limit", required = false) Integer limit,
+        @RequestParam(name = "sort_by", required = false) String sortBy,
+        @RequestParam(name = "order", required = false) String order
+    ) {
+        var pageRequest = PageUtils.makePageRequest(sortBy, order, page, limit);
+        return accountService.searchUser(account, displayName, pageRequest);
+    }
+
+    @PostMapping("/{id}/follow")
+    public Object followUser(@CurrentAccount Account account, @PathVariable Long id) {
+        accountService.followUser(account, id);
+        return null;
+    }
 }

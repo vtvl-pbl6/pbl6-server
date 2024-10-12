@@ -67,6 +67,18 @@ username_already_exists:
 email_already_exists:
   code: ERR_EMA0102
   message: Email đã được sử dụng!
+account_is_not_available:
+  code: ERR_ACC0109
+  message: Tài khoản không khả dụng!
+cannot_follow_yourself:
+  code: ERR_ACC0110
+  message: Bạn không thể theo dõi chính mình!
+already_followed:
+  code: ERR_ACC0111
+  message: Bạn đã theo dõi người dùng này!
+cannot_follow_admin:
+  code: ERR_ACC0112
+  message: Bạn không thể theo dõi người quản trị!
 
 # Permission
 permission_not_found:

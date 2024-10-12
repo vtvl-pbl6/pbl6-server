@@ -16,6 +16,7 @@ import java.util.List;
 @Mapper(config = SpringMapStructConfig.class)
 public interface AccountMapper {
     String TO_RESPONSE_NAMED = "account_to_response";
+    String TO_USER_RESPONSE_NAMED = "account_to_user_response";
     AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
 
     // TODO: add the toEntity method with account's data from client request as the parameter
@@ -24,6 +25,17 @@ public interface AccountMapper {
     @Mapping(source = "followers", target = "followers", qualifiedByName = "getFollowers")
     @Mapping(source = "followingUsers", target = "followingUsers", qualifiedByName = "getFollowingUsers")
     AccountResponse toResponse(Account account);
+
+    @Named(TO_USER_RESPONSE_NAMED)
+    @Mapping(source = "status", target = "status", ignore = true)
+    @Mapping(source = "visibility", target = "visibility", ignore = true)
+    @Mapping(source = "language", target = "language", ignore = true)
+    @Mapping(source = "createdAt", target = "createdAt", ignore = true)
+    @Mapping(source = "updatedAt", target = "updatedAt", ignore = true)
+    @Mapping(source = "deletedAt", target = "deletedAt", ignore = true)
+    @Mapping(source = "followers", target = "followers", ignore = true)
+    @Mapping(source = "followingUsers", target = "followingUsers", ignore = true)
+    AccountResponse toUserResponse(Account account);
 
     @Named("getFollowers")
     default List<AccountResponse> getFollowers(List<Follower> followers) {
