@@ -1,14 +1,7 @@
 # Thông báo
 notification:
-  follow: "<b>{0}</b> đã bắt đầu theo dõi bạn." # {0} là tên hiển thị của người theo dõi
-  comment: "<b>{0}</b> đã bình luận về bài viết của bạn: {1}" # {0} là tên hiển thị của người bình luận, {1} là bình luận
-  comment_file: "<b>{0}</b> đã bình luận về bài viết của bạn bằng hình ảnh" # {0} là tên hiển thị của người bình luận
-  request_thread_moderation:
-    with_content: "<b>{0}</b> đã yêu cầu bạn duyệt bài viết: {1}" # {0} là tên hiển thị của người yêu cầu, {1} là bài viết
-    with_file: "<b>{0}</b> đã yêu cầu bạn duyệt một bài viết có chứa hình ảnh" # {0} là tên hiển thị của người yêu cầu
-  request_thread_moderation_failed:
-    with_content: "Quá trình duyệt bài viết của bạn đã thất bại: {0}" # {0} là tiêu đề hoặc mô tả của bài viết
-    with_file: "Quá trình duyệt bài viết có hình ảnh của bạn đã thất bại!"
-  request_thread_moderation_success:
-    with_content: "Bài viết của bạn đã được duyệt thành công: {0}" # {0} là tiêu đề hoặc mô tả của bài viết
-    with_file: "Bài viết có hình ảnh của bạn đã được duyệt thành công!"
+  follow: "<b>{0}</b> <i18n>đã bắt đầu theo dõi bạn</i18n>"
+  comment: "<b>{0}</b> <i18n>đã bình luận về bài viết của bạn</i18n>{1}"
+  request_thread_moderation: "<b>{0}</b> <i18n>đã yêu cầu bạn xem xét bài viết</i18n>{1}"
+  request_thread_moderation_failed: "<i18n>Việc kiểm duyệt bài viết của bạn đã thất bại</i18n>{0}"
+  request_thread_moderation_success: "<i18n>Bài viết của bạn đã được kiểm duyệt thành công</i18n>{0}"

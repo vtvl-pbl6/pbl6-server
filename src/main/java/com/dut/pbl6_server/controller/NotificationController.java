@@ -1,16 +1,17 @@
 package com.dut.pbl6_server.controller;
 
-import com.dut.pbl6_server.common.enums.NotificationType;
-import com.dut.pbl6_server.common.enums.WebSocketDestination;
+import com.dut.pbl6_server.annotation.auth.CurrentAccount;
+import com.dut.pbl6_server.annotation.auth.PreAuthorizeAll;
+import com.dut.pbl6_server.common.util.PageUtils;
 import com.dut.pbl6_server.config.websocket.WebSocketUtils;
-import com.dut.pbl6_server.repository.jpa.AccountsRepository;
-import com.dut.pbl6_server.repository.jpa.ThreadsRepository;
+import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.service.NotificationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.MessageHandlingException;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController("NotificationController")
@@ -19,24 +20,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class NotificationController {
     private final WebSocketUtils webSocketUtils;
     private final NotificationService notificationService;
-    private final AccountsRepository accountsRepository;
-    private final ThreadsRepository threadsRepository;
-
 
     @GetMapping
-    public Object test() {
-        notificationService.sendNotification(
-            accountsRepository.findByEmail("admin@gmail.com").orElse(null),
-            accountsRepository.findByEmail("user@gmail.com").orElse(null),
-            NotificationType.FOLLOW,
-            null
-        );
-        return null;
+    @PreAuthorizeAll
+    public Object getNotifications(
+        @CurrentAccount Account currentAccount,
+        @RequestParam(name = "page", required = false) Integer page,
+        @RequestParam(name = "limit", required = false) Integer limit,
+        @RequestParam(name = "sort_by", defaultValue = "created_at") String sortBy,
+        @RequestParam(name = "order", defaultValue = "desc") String order
+    ) {
+        var pageRequest = PageUtils.makePageRequest(sortBy, order, page, limit);
+        return notificationService.getNotifications(currentAccount, pageRequest);
     }
 
-    @MessageMapping("/message")
-    public String sendMessage(@Payload String payload) {
-        webSocketUtils.sendToAllSubscribers(WebSocketDestination.PUBLIC_USER, payload);
-        return payload;
+    // Error handling method
+    @MessageExceptionHandler
+    public String handleError(MessageHandlingException e) {
+        return "Error occurred: " + e.getMessage();
     }
 }

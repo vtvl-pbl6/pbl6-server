@@ -2,8 +2,11 @@ package com.dut.pbl6_server.service;
 
 import com.dut.pbl6_server.common.enums.NotificationType;
 import com.dut.pbl6_server.common.model.AbstractEntity;
+import com.dut.pbl6_server.common.model.DataWithPage;
 import com.dut.pbl6_server.dto.respone.NotificationResponse;
 import com.dut.pbl6_server.entity.Account;
+import com.dut.pbl6_server.entity.enums.AccountRole;
+import org.springframework.data.domain.Pageable;
 
 public interface NotificationService {
     /**
@@ -18,6 +21,9 @@ public interface NotificationService {
      *                 It will be used to <i><b>get content</b></i> of notification, and it also indicates whether we need to <i><b>save the notification to the database or not</b></i>.
      * @param object   object of notification
      * @return DTO response of notification
+     * @see com.dut.pbl6_server.common.enums.WebSocketDestination#getDestination(NotificationType, AccountRole, AccountRole)
      */
     NotificationResponse sendNotification(Account sender, Account receiver, NotificationType type, AbstractEntity object);
+
+    DataWithPage<NotificationResponse> getNotifications(Account account, Pageable pageable);
 }

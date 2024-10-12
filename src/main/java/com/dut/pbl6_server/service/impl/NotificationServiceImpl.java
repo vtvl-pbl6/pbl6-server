@@ -1,5 +1,6 @@
 package com.dut.pbl6_server.service.impl;
 
+import com.dut.pbl6_server.common.constant.CommonConstants;
 import com.dut.pbl6_server.common.constant.ErrorMessageConstants;
 import com.dut.pbl6_server.common.enums.LocaleFile;
 import com.dut.pbl6_server.common.enums.LocaleLanguage;
@@ -7,8 +8,10 @@ import com.dut.pbl6_server.common.enums.NotificationType;
 import com.dut.pbl6_server.common.enums.WebSocketDestination;
 import com.dut.pbl6_server.common.exception.BadRequestException;
 import com.dut.pbl6_server.common.model.AbstractEntity;
+import com.dut.pbl6_server.common.model.DataWithPage;
 import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.common.util.I18nUtils;
+import com.dut.pbl6_server.common.util.PageUtils;
 import com.dut.pbl6_server.config.websocket.WebSocketUtils;
 import com.dut.pbl6_server.dto.respone.NotificationResponse;
 import com.dut.pbl6_server.entity.Account;
@@ -18,7 +21,13 @@ import com.dut.pbl6_server.mapper.NotificationMapper;
 import com.dut.pbl6_server.repository.jpa.NotificationsRepository;
 import com.dut.pbl6_server.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -35,12 +44,12 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         // Get content of notification in default language in order to save it to database
-        String savedContent = getContent(type, sender, LocaleLanguage.VI.getValue(), object);
+        String savedContent = getContent(type, sender, LocaleLanguage.VI.getValue(), object, false);
 
         // Get content of notification in receiver's language
         String receiverContent = savedContent;
         if (receiver != null && !receiver.getLanguage().equals(I18nUtils.getCurrentLanguage().getValue())) {
-            receiverContent = getContent(type, sender, receiver.getLanguage(), object);
+            receiverContent = getContent(type, sender, receiver.getLanguage(), object, false);
         }
 
         // Save notification to database if it is required
@@ -69,30 +78,71 @@ public class NotificationServiceImpl implements NotificationService {
         return response;
     }
 
-    private String getContent(NotificationType type, Account sender, String language, AbstractEntity object) {
+    @Override
+    public DataWithPage<NotificationResponse> getNotifications(Account account, Pageable pageable) {
+        var page = notificationsRepository.getNotificationsByReceiverId(account.getId(), account.getRole().name(), pageable);
+        return DataWithPage.<NotificationResponse>builder()
+            .data(page.getContent().stream().map(notification -> {
+                // Set content in receiver's language if it is not in default language
+                if (!account.getLanguage().equals(I18nUtils.DEFAULT_LANGUAGE.getValue())) {
+                    var content = trContent(notification, account.getLanguage());
+                    if (CommonUtils.String.isNotEmptyOrNull(content))
+                        notification.setContent(content);
+                }
+                return notificationMapper.toResponse(notification);
+            }).toList())
+            .pageInfo(PageUtils.makePageInfo(page))
+            .build();
+    }
+
+    private String trContent(Notification notification, String language) {
+        // Get content for translation
+        var i18nContent = getContent(
+            CommonUtils.stringToEnum(notification.getType(), NotificationType.class),
+            notification.getSender(),
+            language,
+            null,
+            true
+        );
+
+        // Replace content which starts with <i18n> tag
+        if (CommonUtils.String.isNotEmptyOrNull(i18nContent)) {
+            Pattern pattern = Pattern.compile(CommonConstants.I18N_REGEX_PATTERN);
+            Matcher rawMatcher = pattern.matcher(notification.getContent());
+            Matcher i18nMatcher = pattern.matcher(i18nContent);
+            if (rawMatcher.results().toList().size() == i18nMatcher.results().toList().size()) {
+                Map<String, String> i18nMap = new HashMap<>();
+                while (rawMatcher.find() && i18nMatcher.find()) {
+                    i18nMap.putIfAbsent(rawMatcher.group(), i18nMatcher.group());
+                }
+                var translatedContent = notification.getContent();
+                i18nMap.keySet().forEach(key -> translatedContent.replaceAll(key, i18nMap.get(key)));
+                return translatedContent;
+            }
+        }
+
+        return null;
+    }
+
+    private String getContent(NotificationType type, Account sender, String language, AbstractEntity object, boolean forTranslation) {
         I18nUtils.setLanguage(language);
+        if (forTranslation)
+            return I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP);
+
         try {
             return switch (type) {
-                case FOLLOW -> sender != null
-                    ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName())
-                    : null;
-                case COMMENT -> {
-                    var comment = (Thread) object;
-                    yield CommonUtils.String.isNotEmptyOrNull(comment.getContent())
-                        ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName(), comment.getContent())
-                        : I18nUtils.tr("notification.comment_file", LocaleFile.APP, sender.getDisplayName());
-                }
-                case REQUEST_THREAD_MODERATION -> {
+                case FOLLOW -> I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName());
+                case COMMENT, REQUEST_THREAD_MODERATION -> {
                     var thread = (Thread) object;
                     yield CommonUtils.String.isNotEmptyOrNull(thread.getContent())
-                        ? I18nUtils.tr(String.format("notification.%s.with_content", type.getValue()), LocaleFile.APP, sender.getDisplayName(), thread.getContent())
-                        : I18nUtils.tr(String.format("notification.%s.with_file", type.getValue()), LocaleFile.APP, sender.getDisplayName());
+                        ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName(), ": " + thread.getContent())
+                        : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName(), "");
                 }
                 case REQUEST_THREAD_MODERATION_FAILED, REQUEST_THREAD_MODERATION_SUCCESS -> {
                     var thread = (Thread) object;
                     yield CommonUtils.String.isNotEmptyOrNull(thread.getContent())
-                        ? I18nUtils.tr(String.format("notification.%s.with_content", type.getValue()), LocaleFile.APP, thread.getContent())
-                        : I18nUtils.tr(String.format("notification.%s.with_file", type.getValue()), LocaleFile.APP);
+                        ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, ": " + thread.getContent())
+                        : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, "");
                 }
                 case LIKE, SHARE, CREATE_THREAD_DONE -> null;
             };

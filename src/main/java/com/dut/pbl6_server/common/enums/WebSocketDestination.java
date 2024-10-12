@@ -27,15 +27,15 @@ public enum WebSocketDestination {
     private final String value;
 
     public static WebSocketDestination getDestination(NotificationType type, AccountRole receiverRole, AccountRole senderRole) {
-        // If both receiver and sender are null, it's a public user notification
+        // If both receiver and sender are null, default destination is public user notification
         if (receiverRole == null && senderRole == null)
             return PUBLIC_USER;
 
         // If receiver is null, it's a public notification depending on the sender role
         if (receiverRole == null)
             return switch (senderRole) {
-                case USER -> PUBLIC_USER;
-                case ADMIN -> PUBLIC_ADMIN;
+                case USER -> PUBLIC_ADMIN;
+                case ADMIN -> PUBLIC_USER;
             };
 
         return switch (type) {
