@@ -1,5 +1,6 @@
 package com.dut.pbl6_server.task_executor.service;
 
+import com.dut.pbl6_server.common.enums.NotificationType;
 import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.common.util.VoidCallBack;
 import com.dut.pbl6_server.config.httpclient.HttpClientConfig;
@@ -8,8 +9,9 @@ import com.dut.pbl6_server.entity.ThreadFile;
 import com.dut.pbl6_server.entity.enums.ThreadStatus;
 import com.dut.pbl6_server.entity.json.HosResult;
 import com.dut.pbl6_server.repository.jpa.ThreadsRepository;
+import com.dut.pbl6_server.service.NotificationService;
 import com.dut.pbl6_server.task_executor.BaseTaskService;
-import com.dut.pbl6_server.task_executor.ContentModerationResult;
+import com.dut.pbl6_server.task_executor.task.ContentModerationResult;
 import com.dut.pbl6_server.task_executor.task.ContentModerationTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,7 @@ public class ContentModerationTaskService implements BaseTaskService<ContentMode
     private final HttpClientConfig httpClientConfig;
     private final TaskExecutor contentModerationTaskExecutor;
     private final ThreadsRepository threadsRepository;
+    private final NotificationService notificationService;
 
     public void moderate(Thread thread) {
         submitTask(
@@ -75,7 +78,8 @@ public class ContentModerationTaskService implements BaseTaskService<ContentMode
                                 thread.setStatus(ThreadStatus.CREATE_DONE);
                                 threadsRepository.save(thread);
 
-                                // TODO: Send notification to client
+                                // Send notification to client (via WebSocket)
+                                notificationService.sendNotification(null, thread.getAuthor(), NotificationType.CREATE_THREAD_DONE, thread);
                             }
                         } catch (Exception e) {
                             log.error(e.getMessage());

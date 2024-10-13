@@ -7,7 +7,6 @@ import com.dut.pbl6_server.config.httpclient.HttpClientConfig;
 import com.dut.pbl6_server.config.httpclient.HttpMethod;
 import com.dut.pbl6_server.entity.File;
 import com.dut.pbl6_server.task_executor.BaseTask;
-import com.dut.pbl6_server.task_executor.ContentModerationResult;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;

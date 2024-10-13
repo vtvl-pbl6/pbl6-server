@@ -1,7 +1,9 @@
 package com.dut.pbl6_server.config.websocket;
 
+import com.dut.pbl6_server.common.constant.ErrorMessageConstants;
 import com.dut.pbl6_server.common.enums.WebSocketDestination;
 import com.dut.pbl6_server.common.exception.BadRequestException;
+import com.dut.pbl6_server.common.util.ErrorUtils;
 import com.dut.pbl6_server.entity.Account;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -60,9 +62,24 @@ public class WebSocketUtils {
         messagingTemplate.convertAndSendToUser(email, destination.getValue(), payload);
     }
 
-    public void sendError(String email, Object message) {
+    public void sendError(String email, Throwable cause) {
         // Check if subscriber exists
-        Account subscriber = getSubscriber(email).orElseThrow(() -> new BadRequestException("Subscriber not found"));
+        Account subscriber = getSubscriber(email).orElse(null);
+        if (subscriber == null) return;
+
+        // Get error payload
+        var rootCause = getRootCause(cause);
+        Object payload = switch (rootCause.getClass().getSimpleName()) {
+            case "AccessDeniedException" -> ErrorUtils.getExceptionError(ErrorMessageConstants.FORBIDDEN);
+            case "AuthenticationCredentialsNotFoundException" ->
+                ErrorUtils.getExceptionError(ErrorMessageConstants.UNAUTHORIZED);
+            default -> {
+                var errorResponse = ErrorUtils.getExceptionError(rootCause.getMessage());
+                yield errorResponse.getCode() == null
+                    ? rootCause.getMessage()
+                    : errorResponse;
+            }
+        };
 
         // Get destination
         var destination = switch (subscriber.getRole()) {
@@ -70,7 +87,12 @@ public class WebSocketUtils {
             case USER -> WebSocketDestination.PRIVATE_USER_NOTIFICATION;
         };
 
-        // Send error message
-        messagingTemplate.convertAndSendToUser(email, destination.getValue(), message);
+        // Send error payload
+        messagingTemplate.convertAndSendToUser(email, destination.getValue(), payload);
+    }
+
+    private Throwable getRootCause(Throwable cause) {
+        if (cause.getCause() == null) return cause;
+        return getRootCause(cause.getCause());
     }
 }

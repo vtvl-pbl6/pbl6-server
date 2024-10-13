@@ -67,14 +67,19 @@ public class NotificationServiceImpl implements NotificationService {
         var response = notificationMapper.toResponse(newNotification); // Convert to response
 
         // Send notification (via WebSocket) to specific subscriber if receiver is not null else send to all subscribers
-        if (receiver != null)
-            webSocketUtils.sendToSubscriber(
-                receiver.getEmail(),
-                WebSocketDestination.getDestination(type, receiver.getRole(), sender != null ? sender.getRole() : null),
-                response
-            );
-        else
-            webSocketUtils.sendToAllSubscribers(WebSocketDestination.PUBLIC_USER, response);
+        try {
+            if (receiver != null)
+                webSocketUtils.sendToSubscriber(
+                    receiver.getEmail(),
+                    WebSocketDestination.getDestination(type, receiver.getRole(), sender != null ? sender.getRole() : null),
+                    response
+                );
+            else
+                webSocketUtils.sendToAllSubscribers(WebSocketDestination.PUBLIC_USER, response);
+        } catch (Exception e) {
+            if (receiver != null) webSocketUtils.sendError(receiver.getEmail(), e);
+        }
+
         return response;
     }
 
