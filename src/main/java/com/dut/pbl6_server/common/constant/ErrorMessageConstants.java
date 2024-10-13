@@ -67,6 +67,12 @@ public final class ErrorMessageConstants {
      */
     public static final String REPOST_NOT_FOUND = "repost_not_found";
 
+    /**
+     * Notification
+     */
+    public static final String NOTIFICATION_NOT_FOUND = "notification_not_found";
+    public static final String NOTIFICATION_CANT_SEND_TO_YOURSELF = "notification_cant_send_to_yourself";
+
     private ErrorMessageConstants() {
     }
 }

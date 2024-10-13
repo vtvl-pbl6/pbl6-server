@@ -1,1 +1,7 @@
-# Notification
+# Thông báo
+notification:
+  follow: "<b>{0}</b> <i18n>đã bắt đầu theo dõi bạn</i18n>"
+  comment: "<b>{0}</b> <i18n>đã bình luận về bài viết của bạn</i18n>{1}"
+  request_thread_moderation: "<b>{0}</b> <i18n>đã yêu cầu bạn xem xét bài viết</i18n>{1}"
+  request_thread_moderation_failed: "<i18n>Việc kiểm duyệt bài viết của bạn đã thất bại</i18n>{0}"
+  request_thread_moderation_success: "<i18n>Bài viết của bạn đã được kiểm duyệt thành công</i18n>{0}"

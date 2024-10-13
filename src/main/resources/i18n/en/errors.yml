@@ -149,3 +149,12 @@ private_thread_can_not_have_comment:
 repost_not_found:
   code: ERR_REP0101
   message: You don't have repost!
+
+# Notification
+notification_not_found:
+  code: ERR_NOT0101
+  message: Notification is not available!
+notification_cant_send_to_yourself:
+  code: ERR_NOT0102
+  message: You can't send notification to yourself!
+

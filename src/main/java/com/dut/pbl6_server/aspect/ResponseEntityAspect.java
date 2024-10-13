@@ -24,7 +24,11 @@ public class ResponseEntityAspect {
     public void skipAnnotation() {
     }
 
-    @Around("(userControllers() || adminControllers()) && !skipAnnotation()")
+    @Pointcut("@annotation(org.springframework.messaging.handler.annotation.MessageMapping)")
+    public void messageMapping() {
+    }
+
+    @Around("(userControllers() || adminControllers()) && !skipAnnotation() && !messageMapping()")
     public ResponseEntity<AbstractResponse> modifyResponseAfterController(ProceedingJoinPoint joinPoint) throws Throwable {
         var val = joinPoint.proceed();
         AbstractResponse response = null;

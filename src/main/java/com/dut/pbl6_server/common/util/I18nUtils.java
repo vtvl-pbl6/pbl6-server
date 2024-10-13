@@ -10,7 +10,7 @@ import java.util.Map;
 
 public final class I18nUtils {
     private static final ThreadLocal<LocaleLanguage> lang = new ThreadLocal<>();
-    private static final LocaleLanguage DEFAULT_LANGUAGE = LocaleLanguage.VI;
+    public static final LocaleLanguage DEFAULT_LANGUAGE = LocaleLanguage.VI;
 
     public static void setLanguage(String language) {
         try {

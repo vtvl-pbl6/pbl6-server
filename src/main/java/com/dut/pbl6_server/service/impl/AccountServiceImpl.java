@@ -1,6 +1,7 @@
 package com.dut.pbl6_server.service.impl;
 
 import com.dut.pbl6_server.common.constant.ErrorMessageConstants;
+import com.dut.pbl6_server.common.enums.NotificationType;
 import com.dut.pbl6_server.common.exception.BadRequestException;
 import com.dut.pbl6_server.common.model.DataWithPage;
 import com.dut.pbl6_server.common.util.PageUtils;
@@ -13,6 +14,7 @@ import com.dut.pbl6_server.repository.fetch_data.AccountsFetchRepository;
 import com.dut.pbl6_server.repository.jpa.AccountsRepository;
 import com.dut.pbl6_server.repository.jpa.FollowersRepository;
 import com.dut.pbl6_server.service.AccountService;
+import com.dut.pbl6_server.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ public class AccountServiceImpl implements AccountService {
     private final AccountsRepository accountsRepository;
     private final FollowersRepository followersRepository;
     private final AccountMapper accountMapper;
+    private final NotificationService notificationService;
 
     @Override
     public AccountResponse getAccountInfo(Account currentUser) {
@@ -71,7 +74,7 @@ public class AccountServiceImpl implements AccountService {
         // Check if user is admin
         if (user.getRole() == AccountRole.ADMIN)
             throw new BadRequestException(ErrorMessageConstants.CANNOT_FOLLOW_ADMIN);
-        
+
         // Check if user who is followed is current user
         if (currentUser.getId().equals(userId))
             throw new BadRequestException(ErrorMessageConstants.CANNOT_FOLLOW_YOURSELF);
@@ -83,6 +86,7 @@ public class AccountServiceImpl implements AccountService {
         // Follow user (save to database)
         followersRepository.save(new Follower(currentUser, user));
 
-        // TODO: send notification (via stomp websocket)
+        // send notification (via stomp websocket)
+        notificationService.sendNotification(currentUser, user, NotificationType.FOLLOW, null);
     }
 }
