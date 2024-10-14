@@ -131,7 +131,7 @@ public class ThreadServiceImpl implements ThreadService {
 
         // Check if the current user is the author
         if (currentUser.getId().equals(authorId)) {
-            page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusesNotIn(
+            page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusNotIn(
                 List.of(authorId),
                 List.of(), // All visibilities
                 List.of(), // All statuses
@@ -141,7 +141,7 @@ public class ThreadServiceImpl implements ThreadService {
 
         // Check if the current user is following the author
         else if (followersRepository.isFollowing(authorId, currentUser.getId())) {
-            page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusesNotIn(
+            page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusNotIn(
                 List.of(authorId),
                 List.of(Visibility.PUBLIC, Visibility.FRIEND_ONLY),
                 List.of(ThreadStatus.PENDING, ThreadStatus.CREATING),
@@ -151,7 +151,7 @@ public class ThreadServiceImpl implements ThreadService {
 
         // The current user is visitor
         else
-            page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusesNotIn(
+            page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusNotIn(
                 List.of(authorId),
                 List.of(Visibility.PUBLIC),
                 List.of(ThreadStatus.PENDING, ThreadStatus.CREATING),
@@ -172,7 +172,7 @@ public class ThreadServiceImpl implements ThreadService {
         if (CommonUtils.List.isEmptyOrNull(followingUserIds))
             return new DataWithPage<>(List.of(), PageUtils.makePageInfo(Page.empty()));
 
-        var page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusesNotIn(
+        var page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusNotIn(
             followingUserIds,
             List.of(Visibility.PUBLIC, Visibility.FRIEND_ONLY),
             List.of(ThreadStatus.PENDING, ThreadStatus.CREATING),
@@ -186,18 +186,64 @@ public class ThreadServiceImpl implements ThreadService {
 
     @Override
     public DataWithPage<ThreadResponse> getThreadSharesByAccount(Account currentUser, Pageable pageable) {
-        Page<Thread> page = null;
+        List<Long> threadIds = threadSharersRepository.getListThreadIdByUserId(currentUser.getId());
 
-        List<Long> threadIds = threadSharersRepository.getListThreadIdByUser(currentUser);
-
-        if (CommonUtils.List.isEmptyOrNull(threadIds)) {
+        if (CommonUtils.List.isEmptyOrNull(threadIds))
             throw new NotFoundObjectException(ErrorMessageConstants.REPOST_NOT_FOUND);
-        }
 
-        page = threadsFetchRepository.findThreadsByThreadIds(threadIds, pageable);
+        Page<Thread> page = threadsFetchRepository.findThreadsByIdInAndVisibilityInAndStatusNotIn(
+            threadIds,
+            List.of(), // All visibilities
+            List.of(), // All statuses
+            pageable
+        );
 
         return new DataWithPage<>(
             page.stream().map(threadMapper::toResponse).toList(),
+            PageUtils.makePageInfo(page)
+        );
+    }
+
+    @Override
+    public DataWithPage<ThreadResponse> getThreadSharesByUserId(Account currentUser, Long userId, Pageable pageable) {
+        List<Long> threadIds = threadSharersRepository.getListThreadIdByUserId(userId);
+        boolean isFollowing = followersRepository.isFollowing(userId, currentUser.getId());
+
+        if (CommonUtils.List.isEmptyOrNull(threadIds))
+            throw new NotFoundObjectException(ErrorMessageConstants.REPOST_NOT_FOUND);
+
+        var page = threadsFetchRepository.findThreadsByIdInAndVisibilityInAndStatusNotIn(
+            threadIds,
+            List.of(), // All visibilities
+            List.of(), // All statuses
+            pageable
+        );
+
+        // Normalize data
+        var contents = page.stream().peek(thread -> {
+            boolean hideData = false;
+            if (thread.getStatus() == ThreadStatus.CREATING) hideData = true;
+            else
+                switch (thread.getVisibility()) {
+                    case PRIVATE -> hideData = true;
+                    case FRIEND_ONLY -> {
+                        if (!isFollowing) hideData = true;
+                    }
+                }
+
+            if (hideData) {
+                thread.setContent(null);
+                thread.setFiles(null);
+                thread.setHosResult(null);
+                thread.setReactionNum(0);
+                thread.setSharedNum(0);
+                thread.setComments(null);
+                thread.setSharers(null);
+            }
+        }).toList();
+
+        return new DataWithPage<>(
+            contents.stream().map(threadMapper::toResponse).toList(),
             PageUtils.makePageInfo(page)
         );
     }

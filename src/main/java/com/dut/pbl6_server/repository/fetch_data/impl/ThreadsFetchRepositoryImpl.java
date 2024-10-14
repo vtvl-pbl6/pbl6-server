@@ -27,7 +27,7 @@ public class ThreadsFetchRepositoryImpl implements ThreadsFetchRepository {
     }
 
     @Override
-    public Page<Thread> findAllByAuthorIdInAndVisibilityInAndStatusesNotIn(
+    public Page<Thread> findAllByAuthorIdInAndVisibilityInAndStatusNotIn(
         List<Long> authorIds,
         List<Visibility> visibilities,
         List<ThreadStatus> statuses,
@@ -48,9 +48,17 @@ public class ThreadsFetchRepositoryImpl implements ThreadsFetchRepository {
     }
 
     @Override
-    public Page<Thread> findThreadsByThreadIds(List<Long> threadIds, Pageable pageable) {
+    public Page<Thread> findThreadsByIdInAndVisibilityInAndStatusNotIn(List<Long> threadIds, List<Visibility> visibilities, List<ThreadStatus> statuses, Pageable pageable) {
         var whereElements = new ArrayList<WhereElement>();
+
         whereElements.add(WhereElement.builder().key("id").value(threadIds).operator(WhereOperator.IN).build());
+
+        if (CommonUtils.List.isNotEmptyOrNull(visibilities))
+            whereElements.add(WhereElement.builder().key("visibility").value(visibilities).operator(WhereOperator.IN).build());
+
+        if (CommonUtils.List.isNotEmptyOrNull(statuses))
+            whereElements.add(WhereElement.builder().key("status").value(statuses).operator(WhereOperator.NOT_IN).build());
+
         return fetchBaseRepository.fetchAllDataWithPagination(whereElements, pageable);
     }
 
