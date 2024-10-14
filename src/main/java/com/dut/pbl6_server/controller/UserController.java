@@ -22,6 +22,20 @@ public class UserController {
             : accountService.getAccountInfo(account);
     }
 
+    @GetMapping("/{id}/followers")
+    public Object getFollowers(
+        @CurrentAccount Account account,
+        @PathVariable Long id,
+        @RequestParam(name = "page", required = false) Integer page,
+        @RequestParam(name = "limit", required = false) Integer limit,
+        @RequestParam(name = "sort_by", required = false) String sortBy,
+        @RequestParam(name = "order", required = false) String order
+    ) {
+        var pageRequest = PageUtils.makePageRequest(sortBy, order, page, limit);
+        return accountService.getFollowers(account, id, pageRequest);
+    }
+
+
     @GetMapping("/search")
     public Object searchUser(
         @CurrentAccount Account account,

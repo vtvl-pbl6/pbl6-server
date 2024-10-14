@@ -12,5 +12,7 @@ public interface AccountService {
 
     DataWithPage<AccountResponse> searchUser(Account currentUser, String displayName, Pageable pageable);
 
+    DataWithPage<AccountResponse> getFollowers(Account currentUser, Long userId, Pageable pageable);
+
     void followUser(Account currentUser, Long userId);
 }

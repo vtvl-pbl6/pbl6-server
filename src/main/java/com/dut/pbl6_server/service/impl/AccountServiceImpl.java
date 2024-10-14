@@ -44,15 +44,16 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountResponse getAccountInfoById(Account currentUser, Long userId) {
-        var account = accountsRepository.findById(userId).orElseThrow(() -> new BadRequestException(ErrorMessageConstants.ACCOUNT_NOT_FOUND));
+        var account = accountsFetchRepository.findById(userId).orElseThrow(() -> new BadRequestException(ErrorMessageConstants.ACCOUNT_NOT_FOUND));
+        Boolean isFollowingByCurrentUser = userId.equals(currentUser.getId()) ? null : followersRepository.isFollowing(userId, currentUser.getId());
 
         // Check account's visibility
         return switch (account.getVisibility()) {
-            case PUBLIC -> accountMapper.toUserResponse(account);
+            case PUBLIC -> accountMapper.toUserInfoResponse(account, isFollowingByCurrentUser);
             case PRIVATE -> throw new BadRequestException(ErrorMessageConstants.ACCOUNT_IS_NOT_AVAILABLE);
             case FRIEND_ONLY -> {
-                if (followersRepository.isFollowing(userId, currentUser.getId()))
-                    yield accountMapper.toUserResponse(account);
+                if (isFollowingByCurrentUser != null && isFollowingByCurrentUser)
+                    yield accountMapper.toUserInfoResponse(account, true);
                 else
                     throw new BadRequestException(ErrorMessageConstants.ACCOUNT_IS_NOT_AVAILABLE);
             }
@@ -61,9 +62,20 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public DataWithPage<AccountResponse> searchUser(Account currentUser, String displayName, Pageable pageable) {
-        var page = accountsRepository.searchByDisplayName(displayName, pageable);
+        var page = accountsFetchRepository.searchByDisplayName(displayName, pageable);
         return DataWithPage.<AccountResponse>builder()
-            .data(page.getContent().stream().map(accountMapper::toUserResponse).toList())
+            .data(page.getContent().stream().map(e ->
+                accountMapper.toUserInfoResponse(e, followersRepository.isFollowing(e.getId(), currentUser.getId()))).toList()
+            )
+            .pageInfo(PageUtils.makePageInfo(page))
+            .build();
+    }
+
+    @Override
+    public DataWithPage<AccountResponse> getFollowers(Account currentUser, Long userId, Pageable pageable) {
+        var page = followersRepository.findAllByUserId(userId, pageable);
+        return DataWithPage.<AccountResponse>builder()
+            .data(page.getContent().stream().map(e -> accountMapper.toUserInfoResponse(e.getFollower(), null)).toList())
             .pageInfo(PageUtils.makePageInfo(page))
             .build();
     }

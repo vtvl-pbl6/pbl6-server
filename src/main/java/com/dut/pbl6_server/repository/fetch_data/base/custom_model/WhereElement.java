@@ -17,6 +17,7 @@ public class WhereElement {
     @Builder.Default
     private WhereLogical logical = WhereLogical.AND;
 
+    @Builder(builderMethodName = "WithoutFieldOperatorBuilder", builderClassName = "WithoutFieldOperatorBuilder")
     public WhereElement(String key, Object value, WhereOperator operator) {
         this.key = key;
         this.value = value;
@@ -25,6 +26,7 @@ public class WhereElement {
         this.logical = WhereLogical.AND;
     }
 
+    @Builder(builderMethodName = "WithFieldOperatorBuilder", builderClassName = "WithFieldOperatorBuilder")
     public WhereElement(String key, Object value, WhereOperator operator, List<WhereFieldOperator> fieldOperator) {
         this.key = key;
         this.value = value;

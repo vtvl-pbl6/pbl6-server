@@ -21,13 +21,11 @@ public interface AccountMapper {
     AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
 
     @Named(TO_RESPONSE_NAMED)
-    @Mapping(source = "followers", target = "followers", qualifiedByName = "getFollowers")
-    @Mapping(source = "followingUsers", target = "followingUsers", qualifiedByName = "getFollowingUsers")
+    @Mapping(source = "followers", target = "followerNum", qualifiedByName = "getFollowers")
+    @Mapping(source = "followingUsers", target = "followingUserNum", qualifiedByName = "getFollowingUsers")
     AccountResponse toResponse(Account account);
 
     @Named(TO_NOTIFICATION_USER_RESPONSE_NAMED)
-    @Mapping(source = "firstName", target = "firstName", ignore = true)
-    @Mapping(source = "lastName", target = "lastName", ignore = true)
     @Mapping(source = "status", target = "status", ignore = true)
     @Mapping(source = "role", target = "role", ignore = true)
     @Mapping(source = "birthday", target = "birthday", ignore = true)
@@ -38,36 +36,36 @@ public interface AccountMapper {
     @Mapping(source = "createdAt", target = "createdAt", ignore = true)
     @Mapping(source = "updatedAt", target = "updatedAt", ignore = true)
     @Mapping(source = "deletedAt", target = "deletedAt", ignore = true)
-    @Mapping(source = "followers", target = "followers", ignore = true)
-    @Mapping(source = "followingUsers", target = "followingUsers", ignore = true)
+    @Mapping(source = "followers", target = "followerNum", ignore = true)
+    @Mapping(source = "followingUsers", target = "followingUserNum", ignore = true)
     AccountResponse toNotificationUserResponse(Account account);
 
     @Named(TO_USER_RESPONSE_NAMED)
-    @Mapping(source = "status", target = "status", ignore = true)
-    @Mapping(source = "visibility", target = "visibility", ignore = true)
-    @Mapping(source = "language", target = "language", ignore = true)
-    @Mapping(source = "createdAt", target = "createdAt", ignore = true)
-    @Mapping(source = "updatedAt", target = "updatedAt", ignore = true)
-    @Mapping(source = "deletedAt", target = "deletedAt", ignore = true)
-    @Mapping(source = "followers", target = "followers", ignore = true)
-    @Mapping(source = "followingUsers", target = "followingUsers", ignore = true)
-    AccountResponse toUserResponse(Account account);
+    @Mapping(source = "account.status", target = "status", ignore = true)
+    @Mapping(source = "account.language", target = "language", ignore = true)
+    @Mapping(source = "account.createdAt", target = "createdAt", ignore = true)
+    @Mapping(source = "account.updatedAt", target = "updatedAt", ignore = true)
+    @Mapping(source = "account.deletedAt", target = "deletedAt", ignore = true)
+    @Mapping(source = "account.followingUsers", target = "followingUserNum", ignore = true)
+    @Mapping(source = "account.followers", target = "followerNum", qualifiedByName = "getFollowers")
+    @Mapping(source = "isFollowedByCurrentUser", target = "isFollowedByCurrentUser")
+    AccountResponse toUserInfoResponse(Account account, Boolean isFollowedByCurrentUser);
 
     @Named("getFollowers")
-    default List<AccountResponse> getFollowers(List<Follower> followers) {
+    default Integer getFollowers(List<Follower> followers) {
         try {
             if (CommonUtils.List.isEmptyOrNull(followers)) return null;
-            return followers.stream().map(e -> this.toResponse(e.getFollower())).toList();
+            return followers.size();
         } catch (LazyInitializationException e) {
             return null;
         }
     }
 
     @Named("getFollowingUsers")
-    default List<AccountResponse> getFollowingUsers(List<Follower> followingUsers) {
+    default Integer getFollowingUsers(List<Follower> followingUsers) {
         try {
             if (CommonUtils.List.isEmptyOrNull(followingUsers)) return null;
-            return followingUsers.stream().map(e -> this.toResponse(e.getUser())).toList();
+            return followingUsers.size();
         } catch (LazyInitializationException e) {
             return null;
         }

@@ -15,7 +15,6 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.sql.Timestamp;
-import java.util.List;
 
 @Getter
 @Setter
@@ -37,6 +36,7 @@ public class AccountResponse extends AbstractDTO {
     private File avatarFile;
     private Visibility visibility;
     private String language;
-    private List<AccountResponse> followers; // 'followers' are the users who follow this user
-    private List<AccountResponse> followingUsers; // 'followingUsers' are the users whom this user is following
+    private Integer followerNum;
+    private Integer followingUserNum;
+    private Boolean isFollowedByCurrentUser;
 }
