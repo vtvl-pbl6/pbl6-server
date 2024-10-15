@@ -68,6 +68,9 @@ public class Thread extends AbstractEntity {
     @OneToMany(mappedBy = "thread", fetch = FetchType.LAZY)
     private List<ThreadSharer> sharers;
 
+    @OneToMany(mappedBy = "thread", fetch = FetchType.LAZY)
+    private List<ThreadReactUser> reactUsers;
+
     @OneToMany(mappedBy = "parentThread", fetch = FetchType.LAZY)
     private List<Thread> comments;
 }

@@ -139,6 +139,20 @@ create table if not exists thread_sharers
     deleted_at timestamp
 );
 
+-- Thread react user table
+create table if not exists thread_react_users
+(
+    id         bigserial
+    primary key,
+    thread_id  bigint                              not null
+    references threads(id) on delete cascade,
+    user_id    bigint                              not null
+    references accounts(id) on delete cascade,
+    created_at timestamp default CURRENT_TIMESTAMP not null,
+    updated_at timestamp,
+    deleted_at timestamp
+);
+
 -- Thread file table
 create table if not exists thread_files
 (
@@ -190,6 +204,11 @@ create index if not exists idx_threads_status on threads (status);
 create index if not exists idx_thread_sharers_thread_id on thread_sharers (thread_id);
 
 create index if not exists idx_thread_sharers_user_id on thread_sharers (user_id);
+
+-- Thread react user table indexes
+create index if not exists idx_thread_react_users_thread_id on thread_sharers (thread_id);
+
+create index if not exists idx_thread_react_users_user_id on thread_sharers (user_id);
 
 -- Thread file table indexes
 create index if not exists idx_thread_files_thread_id on thread_files (thread_id);

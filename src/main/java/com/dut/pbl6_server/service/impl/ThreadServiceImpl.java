@@ -1,6 +1,7 @@
 package com.dut.pbl6_server.service.impl;
 
 import com.dut.pbl6_server.common.constant.ErrorMessageConstants;
+import com.dut.pbl6_server.common.enums.NotificationType;
 import com.dut.pbl6_server.common.exception.BadRequestException;
 import com.dut.pbl6_server.common.exception.NotFoundObjectException;
 import com.dut.pbl6_server.common.model.DataWithPage;
@@ -20,6 +21,7 @@ import com.dut.pbl6_server.repository.jpa.ThreadFilesRepository;
 import com.dut.pbl6_server.repository.jpa.ThreadSharersRepository;
 import com.dut.pbl6_server.repository.jpa.ThreadsRepository;
 import com.dut.pbl6_server.service.CloudinaryService;
+import com.dut.pbl6_server.service.NotificationService;
 import com.dut.pbl6_server.service.ThreadService;
 import com.dut.pbl6_server.task_executor.service.ContentModerationTaskService;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +44,7 @@ public class ThreadServiceImpl implements ThreadService {
     private final FollowersRepository followersRepository;
     private final ThreadMapper threadMapper;
     private final ThreadSharersRepository threadSharersRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -98,6 +101,10 @@ public class ThreadServiceImpl implements ThreadService {
         // Moderate the content and files
         if (CommonUtils.String.isNotEmptyOrNull(request.getContent()))
             contentModerationTaskService.moderate(createdThread);
+
+        // Send notification to the author of the parent thread
+        if (parentThread != null)
+            notificationService.sendNotification(currentUser, createdThread.getParentThread().getAuthor(), NotificationType.COMMENT, createdThread);
 
         return threadMapper.toResponse(createdThread);
     }
@@ -248,4 +255,18 @@ public class ThreadServiceImpl implements ThreadService {
         );
     }
 
+    @Override
+    public ThreadResponse likeThread(Account currentUser, Long threadId) {
+        return null;
+    }
+
+    @Override
+    public ThreadResponse unlikeThread(Account currentUser, Long threadId) {
+        return null;
+    }
+
+    @Override
+    public ThreadResponse shareThread(Account currentUser, Long threadId) {
+        return null;
+    }
 }

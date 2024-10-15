@@ -65,4 +65,20 @@ public class ThreadController {
         var visibilityEnum = CommonUtils.stringToEnum(visibility, Visibility.class);
         return threadService.createThread(account, new ThreadRequest(content, parentId, files, visibilityEnum));
     }
+
+    @PostMapping("/{threadId}/share")
+    public Object shareThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        return threadService.shareThread(account, threadId);
+    }
+
+    @PostMapping("/{threadId}/like")
+    public Object likeThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        return threadService.likeThread(account, threadId);
+    }
 }

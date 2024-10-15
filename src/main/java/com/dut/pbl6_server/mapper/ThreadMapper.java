@@ -6,7 +6,6 @@ import com.dut.pbl6_server.dto.respone.AccountResponse;
 import com.dut.pbl6_server.dto.respone.ThreadResponse;
 import com.dut.pbl6_server.entity.Thread;
 import com.dut.pbl6_server.entity.*;
-import com.dut.pbl6_server.entity.enums.ThreadStatus;
 import com.dut.pbl6_server.entity.json.HosResult;
 import org.hibernate.LazyInitializationException;
 import org.mapstruct.Mapper;
@@ -27,6 +26,7 @@ public interface ThreadMapper {
     @Mapping(source = "thread", target = "content", qualifiedByName = "getContent")
     @Mapping(source = "thread", target = "files", qualifiedByName = "getFiles")
     @Mapping(source = "sharers", target = "sharers", qualifiedByName = "getSharers")
+    @Mapping(source = "reactUsers", target = "reactUsers", qualifiedByName = "getReactUsers")
     @Mapping(source = "comments", target = "comments", qualifiedByName = "getComments")
     ThreadResponse toResponse(Thread thread);
 
@@ -97,7 +97,17 @@ public interface ThreadMapper {
     default List<AccountResponse> getSharers(List<ThreadSharer> threadSharers) {
         try {
             if (CommonUtils.List.isEmptyOrNull(threadSharers)) return null;
-            return threadSharers.stream().map(e -> AccountMapper.INSTANCE.toResponse(e.getUser())).toList();
+            return threadSharers.stream().map(e -> AccountMapper.INSTANCE.toThreadSharerResponse(e.getUser())).toList();
+        } catch (LazyInitializationException e) {
+            return null;
+        }
+    }
+
+    @Named("getReactUsers")
+    default List<AccountResponse> getReactUsers(List<ThreadReactUser> threadReactUsers) {
+        try {
+            if (CommonUtils.List.isEmptyOrNull(threadReactUsers)) return null;
+            return threadReactUsers.stream().map(e -> AccountMapper.INSTANCE.toThreadSharerResponse(e.getUser())).toList();
         } catch (LazyInitializationException e) {
             return null;
         }

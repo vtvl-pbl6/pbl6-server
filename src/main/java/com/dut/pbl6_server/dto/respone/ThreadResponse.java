@@ -30,5 +30,6 @@ public class ThreadResponse extends AbstractDTO {
     private Visibility visibility;
     private List<File> files;
     private List<AccountResponse> sharers;
+    private List<AccountResponse> reactUsers;
     private List<ThreadResponse> comments;
 }
