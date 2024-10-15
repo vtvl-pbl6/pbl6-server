@@ -15,6 +15,7 @@ public enum NotificationType {
     // For real-time only
     CREATE_THREAD_DONE("create_thread_done", false),
     LIKE("like", false),
+    UNLIKE("unlike", false),
     SHARE("share", false);
 
     private final String value;

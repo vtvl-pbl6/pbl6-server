@@ -12,14 +12,12 @@ import com.dut.pbl6_server.dto.respone.ThreadResponse;
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.Thread;
 import com.dut.pbl6_server.entity.ThreadFile;
+import com.dut.pbl6_server.entity.ThreadReactUser;
 import com.dut.pbl6_server.entity.enums.ThreadStatus;
 import com.dut.pbl6_server.entity.enums.Visibility;
 import com.dut.pbl6_server.mapper.ThreadMapper;
 import com.dut.pbl6_server.repository.fetch_data.ThreadsFetchRepository;
-import com.dut.pbl6_server.repository.jpa.FollowersRepository;
-import com.dut.pbl6_server.repository.jpa.ThreadFilesRepository;
-import com.dut.pbl6_server.repository.jpa.ThreadSharersRepository;
-import com.dut.pbl6_server.repository.jpa.ThreadsRepository;
+import com.dut.pbl6_server.repository.jpa.*;
 import com.dut.pbl6_server.service.CloudinaryService;
 import com.dut.pbl6_server.service.NotificationService;
 import com.dut.pbl6_server.service.ThreadService;
@@ -38,13 +36,14 @@ import java.util.List;
 public class ThreadServiceImpl implements ThreadService {
     private final ContentModerationTaskService contentModerationTaskService;
     private final CloudinaryService cloudinaryService;
-    private final ThreadFilesRepository threadFilesRepository;
+    private final NotificationService notificationService;
     private final ThreadsRepository threadsRepository;
     private final ThreadsFetchRepository threadsFetchRepository;
+    private final ThreadFilesRepository threadFilesRepository;
+    private final ThreadSharersRepository threadSharersRepository;
+    private final ThreadReactUsersRepository threadReactUsersRepository;
     private final FollowersRepository followersRepository;
     private final ThreadMapper threadMapper;
-    private final ThreadSharersRepository threadSharersRepository;
-    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -256,17 +255,83 @@ public class ThreadServiceImpl implements ThreadService {
     }
 
     @Override
-    public ThreadResponse likeThread(Account currentUser, Long threadId) {
-        return null;
+    @Transactional
+    public void likeThread(Account currentUser, Long threadId) {
+        var thread = threadsRepository.findById(threadId).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
+        boolean isAuthor = currentUser.getId().equals(thread.getAuthor().getId());
+
+        // Throw exception if the thread is creating
+        if (thread.getStatus() == ThreadStatus.CREATING)
+            throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
+
+        // Check thread's visibility for the current user who is not the author of the thread
+        if (!isAuthor)
+            switch (thread.getVisibility()) {
+                case PRIVATE -> throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
+                case FRIEND_ONLY -> {
+                    if (!followersRepository.isFollowing(thread.getAuthor().getId(), currentUser.getId()))
+                        throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
+                }
+            }
+
+        // Save react user to database if not exists else set deleted_at to null
+        var reactUser = threadReactUsersRepository.findByThreadIdAndUserId(threadId, currentUser.getId()).orElse(null);
+        if (reactUser == null)
+            reactUser = ThreadReactUser.builder()
+                .thread(thread)
+                .user(currentUser)
+                .build();
+        else if (reactUser.getDeletedAt() != null)
+            reactUser.setDeletedAt(null);
+        else
+            throw new BadRequestException(ErrorMessageConstants.THREAD_LIKED);
+        threadReactUsersRepository.save(reactUser);
+
+        // Update reaction_num in the thread
+        thread.setReactionNum(thread.getReactionNum() + 1);
+        threadsRepository.save(thread);
+
+        // Send notification to all subscribers
+        notificationService.sendNotification(null, null, NotificationType.LIKE, thread);
     }
 
     @Override
-    public ThreadResponse unlikeThread(Account currentUser, Long threadId) {
-        return null;
+    @Transactional
+    public void unlikeThread(Account currentUser, Long threadId) {
+        var thread = threadsRepository.findById(threadId).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
+        boolean isAuthor = currentUser.getId().equals(thread.getAuthor().getId());
+
+        // Throw exception if the thread is creating
+        if (thread.getStatus() == ThreadStatus.CREATING)
+            throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
+
+        // Check thread's visibility for the current user who is not the author of the thread
+        if (!isAuthor)
+            switch (thread.getVisibility()) {
+                case PRIVATE -> throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
+                case FRIEND_ONLY -> {
+                    if (!followersRepository.isFollowing(thread.getAuthor().getId(), currentUser.getId()))
+                        throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
+                }
+            }
+
+        // Set deleted_at to current time if react user exists else throw exception
+        var reactUser = threadReactUsersRepository.findByThreadIdAndUserId(threadId, currentUser.getId()).orElse(null);
+        if (reactUser != null && reactUser.getDeletedAt() == null)
+            reactUser.setDeletedAt(CommonUtils.DateTime.getCurrentTimestamp());
+        else
+            throw new BadRequestException(ErrorMessageConstants.THREAD_UNLIKED);
+        threadReactUsersRepository.save(reactUser);
+
+        // Update reaction_num in the thread
+        thread.setReactionNum(thread.getReactionNum() - 1);
+        threadsRepository.save(thread);
+
+        // Send notification to all subscribers
+        notificationService.sendNotification(null, null, NotificationType.LIKE, thread);
     }
 
     @Override
-    public ThreadResponse shareThread(Account currentUser, Long threadId) {
-        return null;
+    public void shareThread(Account currentUser, Long threadId) {
     }
 }

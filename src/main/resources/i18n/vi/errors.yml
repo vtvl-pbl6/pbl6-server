@@ -144,6 +144,12 @@ thread_parent_not_available:
 private_thread_can_not_have_comment:
   code: ERR_THR0106
   message: Bạn không thể bình luận vào bài viết đang ở chế độ riêng tư!
+thread_liked:
+  code: ERR_THR0107
+  message: Bạn đã thích bài viết này!
+thread_unliked:
+  code: ERR_THR0108
+  message: Bạn đã bỏ thích bài viết này!
 
 # Repost
 repost_not_found:

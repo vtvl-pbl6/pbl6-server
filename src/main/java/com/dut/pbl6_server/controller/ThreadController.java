@@ -71,14 +71,25 @@ public class ThreadController {
         @CurrentAccount Account account,
         @PathVariable Long threadId
     ) {
-        return threadService.shareThread(account, threadId);
+        threadService.shareThread(account, threadId);
+        return null;
     }
 
-    @PostMapping("/{threadId}/like")
+    @PatchMapping("/{threadId}/like")
     public Object likeThread(
         @CurrentAccount Account account,
         @PathVariable Long threadId
     ) {
-        return threadService.likeThread(account, threadId);
+        threadService.likeThread(account, threadId);
+        return null;
+    }
+
+    @PatchMapping("/{threadId}/unlike")
+    public Object unlikeThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        threadService.unlikeThread(account, threadId);
+        return null;
     }
 }

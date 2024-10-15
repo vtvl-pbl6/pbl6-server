@@ -41,7 +41,7 @@ public final class ErrorMessageConstants {
     public static final String CONFIRM_PASSWORD_NOT_MATCHING = "confirm_password_not_matching";
     public static final String ALREADY_FOLLOWED = "already_followed";
     public static final String CANNOT_FOLLOW_ADMIN = "cannot_follow_admin";
-    
+
     /**
      * Account
      */
@@ -61,6 +61,8 @@ public final class ErrorMessageConstants {
     public static final String THREAD_PARENT_NOT_FOUND = "thread_parent_not_found";
     public static final String THREAD_PARENT_NOT_AVAILABLE = "thread_parent_not_available";
     public static final String PRIVATE_THREAD_CAN_NOT_HAVE_COMMENT = "private_thread_can_not_have_comment";
+    public static final String THREAD_LIKED = "thread_liked";
+    public static final String THREAD_UNLIKED = "thread_unliked";
 
     /**
      * Repost

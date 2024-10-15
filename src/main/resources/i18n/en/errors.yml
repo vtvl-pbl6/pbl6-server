@@ -144,6 +144,12 @@ thread_parent_not_available:
 private_thread_can_not_have_comment:
   code: ERR_THR0106
   message: You can not comment on a private thread!
+thread_liked:
+  code: ERR_THR0107
+  message: You have already liked this thread!
+thread_unliked:
+  code: ERR_THR0108
+  message: You have already unliked this thread!
 
 # Repost
 repost_not_found:

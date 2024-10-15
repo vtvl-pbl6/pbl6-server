@@ -19,9 +19,9 @@ public interface ThreadService {
 
     DataWithPage<ThreadResponse> getThreadSharesByUserId(Account currentUser, Long userId, Pageable pageable);
 
-    ThreadResponse likeThread(Account currentUser, Long threadId);
+    void likeThread(Account currentUser, Long threadId);
 
-    ThreadResponse unlikeThread(Account currentUser, Long threadId);
+    void unlikeThread(Account currentUser, Long threadId);
 
-    ThreadResponse shareThread(Account currentUser, Long threadId);
+    void shareThread(Account currentUser, Long threadId);
 }
