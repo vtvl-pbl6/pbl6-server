@@ -9,10 +9,8 @@ import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.common.util.PageUtils;
 import com.dut.pbl6_server.dto.request.ThreadRequest;
 import com.dut.pbl6_server.dto.respone.ThreadResponse;
-import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.Thread;
-import com.dut.pbl6_server.entity.ThreadFile;
-import com.dut.pbl6_server.entity.ThreadReactUser;
+import com.dut.pbl6_server.entity.*;
 import com.dut.pbl6_server.entity.enums.ThreadStatus;
 import com.dut.pbl6_server.entity.enums.Visibility;
 import com.dut.pbl6_server.mapper.ThreadMapper;
@@ -257,22 +255,7 @@ public class ThreadServiceImpl implements ThreadService {
     @Override
     @Transactional
     public void likeThread(Account currentUser, Long threadId) {
-        var thread = threadsRepository.findById(threadId).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
-        boolean isAuthor = currentUser.getId().equals(thread.getAuthor().getId());
-
-        // Throw exception if the thread is creating
-        if (thread.getStatus() == ThreadStatus.CREATING)
-            throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
-
-        // Check thread's visibility for the current user who is not the author of the thread
-        if (!isAuthor)
-            switch (thread.getVisibility()) {
-                case PRIVATE -> throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
-                case FRIEND_ONLY -> {
-                    if (!followersRepository.isFollowing(thread.getAuthor().getId(), currentUser.getId()))
-                        throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
-                }
-            }
+        var thread = checkThreadVisibility(currentUser, threadId);
 
         // Save react user to database if not exists else set deleted_at to null
         var reactUser = threadReactUsersRepository.findByThreadIdAndUserId(threadId, currentUser.getId()).orElse(null);
@@ -298,6 +281,74 @@ public class ThreadServiceImpl implements ThreadService {
     @Override
     @Transactional
     public void unlikeThread(Account currentUser, Long threadId) {
+        var thread = checkThreadVisibility(currentUser, threadId);
+
+        // Set deleted_at to current time if react user exists else throw exception
+        var reactUser = threadReactUsersRepository.findByThreadIdAndUserId(threadId, currentUser.getId()).orElse(null);
+        if (reactUser != null && reactUser.getDeletedAt() == null)
+            reactUser.setDeletedAt(CommonUtils.DateTime.getCurrentTimestamp());
+        else
+            throw new BadRequestException(ErrorMessageConstants.THREAD_UNLIKED);
+        threadReactUsersRepository.save(reactUser);
+
+        // Update reaction_num in the thread
+        thread.setReactionNum(thread.getReactionNum() - 1);
+        threadsRepository.save(thread);
+
+        // Send notification to all subscribers
+        notificationService.sendNotification(null, null, NotificationType.UNLIKE, thread);
+    }
+
+    @Override
+    @Transactional
+    public void shareThread(Account currentUser, Long threadId) {
+        var thread = checkThreadVisibility(currentUser, threadId);
+
+        // Check current user is thread's author
+        if (currentUser.getId().equals(thread.getAuthor().getId()))
+            throw new BadRequestException(ErrorMessageConstants.CANNOT_SHARE_YOUR_OWN_THREAD);
+
+        // Save sharer to database if not exists else throw exception
+        var sharer = threadSharersRepository.findByThreadIdAndUserId(threadId, currentUser.getId()).orElse(null);
+        if (sharer != null)
+            throw new BadRequestException(ErrorMessageConstants.ALREADY_SHARED);
+        else
+            sharer = new ThreadSharer(thread, currentUser);
+        threadSharersRepository.save(sharer);
+
+        // Update shared_num in the thread
+        thread.setSharedNum(thread.getSharedNum() + 1);
+        threadsRepository.save(thread);
+
+        // Send notification to all subscribers
+        notificationService.sendNotification(null, null, NotificationType.SHARE, thread);
+    }
+
+    @Override
+    @Transactional
+    public void unsharedThread(Account currentUser, Long threadId) {
+        var thread = checkThreadVisibility(currentUser, threadId);
+
+        // Check current user is thread's author
+        if (currentUser.getId().equals(thread.getAuthor().getId()))
+            throw new BadRequestException(ErrorMessageConstants.CANNOT_UNSHARED_YOUR_OWN_THREAD);
+
+        // Delete sharer from database if exists else throw exception
+        var sharer = threadSharersRepository.findByThreadIdAndUserId(threadId, currentUser.getId()).orElse(null);
+        if (sharer == null)
+            throw new BadRequestException(ErrorMessageConstants.ALREADY_UNSHARED);
+        else
+            threadSharersRepository.delete(sharer);
+
+        // Update shared_num in the thread
+        thread.setSharedNum(thread.getSharedNum() - 1);
+        threadsRepository.save(thread);
+
+        // Send notification to all subscribers
+        notificationService.sendNotification(null, null, NotificationType.UNSHARED, thread);
+    }
+
+    private Thread checkThreadVisibility(Account currentUser, Long threadId) {
         var thread = threadsRepository.findById(threadId).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
         boolean isAuthor = currentUser.getId().equals(thread.getAuthor().getId());
 
@@ -314,24 +365,6 @@ public class ThreadServiceImpl implements ThreadService {
                         throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
                 }
             }
-
-        // Set deleted_at to current time if react user exists else throw exception
-        var reactUser = threadReactUsersRepository.findByThreadIdAndUserId(threadId, currentUser.getId()).orElse(null);
-        if (reactUser != null && reactUser.getDeletedAt() == null)
-            reactUser.setDeletedAt(CommonUtils.DateTime.getCurrentTimestamp());
-        else
-            throw new BadRequestException(ErrorMessageConstants.THREAD_UNLIKED);
-        threadReactUsersRepository.save(reactUser);
-
-        // Update reaction_num in the thread
-        thread.setReactionNum(thread.getReactionNum() - 1);
-        threadsRepository.save(thread);
-
-        // Send notification to all subscribers
-        notificationService.sendNotification(null, null, NotificationType.LIKE, thread);
-    }
-
-    @Override
-    public void shareThread(Account currentUser, Long threadId) {
+        return thread;
     }
 }

@@ -15,4 +15,6 @@ public interface AccountService {
     DataWithPage<AccountResponse> getFollowers(Account currentUser, Long userId, Pageable pageable);
 
     void followUser(Account currentUser, Long userId);
+
+    void unfollowUser(Account currentUser, Long userId);
 }

@@ -73,12 +73,21 @@ account_is_not_available:
 cannot_follow_yourself:
   code: ERR_ACC0110
   message: Bạn không thể theo dõi chính mình!
-already_followed:
+cannot_unfollow_yourself:
   code: ERR_ACC0111
+  message: Bạn không thể bỏ theo dõi chính mình!
+already_followed:
+  code: ERR_ACC0112
   message: Bạn đã theo dõi người dùng này!
 cannot_follow_admin:
-  code: ERR_ACC0112
+  code: ERR_ACC0113
   message: Bạn không thể theo dõi người quản trị!
+cannot_unfollow_admin:
+  code: ERR_ACC0114
+  message: Bạn không thể bỏ theo dõi người quản trị!
+already_unfollowed:
+  code: ERR_ACC0115
+  message: Bạn đã bỏ theo dõi người dùng này!
 
 # Permission
 permission_not_found:
@@ -150,6 +159,18 @@ thread_liked:
 thread_unliked:
   code: ERR_THR0108
   message: Bạn đã bỏ thích bài viết này!
+cannot_share_your_own_thread:
+  code: ERR_THR0109
+  message: Bạn không thể chia sẻ bài viết của chính mình!
+cannot_unshared_your_own_thread:
+  code: ERR_THR0110
+  message: Bạn không thể bỏ chia sẻ bài viết của chính mình!
+already_shared:
+  code: ERR_THR0111
+  message: Bạn đã chia sẻ bài viết này!
+already_unshared:
+  code: ERR_THR0112
+  message: Bạn đã bỏ chia sẻ bài viết này!
 
 # Repost
 repost_not_found:

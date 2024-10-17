@@ -75,6 +75,15 @@ public class ThreadController {
         return null;
     }
 
+    @PostMapping("/{threadId}/unshared")
+    public Object unsharedThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        threadService.unsharedThread(account, threadId);
+        return null;
+    }
+
     @PatchMapping("/{threadId}/like")
     public Object likeThread(
         @CurrentAccount Account account,

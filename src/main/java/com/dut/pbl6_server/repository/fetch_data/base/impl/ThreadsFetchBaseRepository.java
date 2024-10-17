@@ -104,8 +104,8 @@ public class ThreadsFetchBaseRepository implements FetchBaseRepository<Thread> {
                     LEFT JOIN FETCH tru.user
                     LEFT JOIN FETCH tru.user.avatarFile
                     WHERE
-                        tru.thread IN :threads
-                        OR tru.thread IN :comments
+                        (tru.thread IN :threads OR tru.thread IN :comments)
+                        AND tru.deletedAt IS NULL
                     """,
                 ThreadReactUser.class)
             .setParameter("threads", values)

@@ -39,8 +39,6 @@ public final class ErrorMessageConstants {
     public static final String USERNAME_ALREADY_EXISTS = "username_already_exists";
     public static final String EMAIL_ALREADY_EXISTS = "email_already_exists";
     public static final String CONFIRM_PASSWORD_NOT_MATCHING = "confirm_password_not_matching";
-    public static final String ALREADY_FOLLOWED = "already_followed";
-    public static final String CANNOT_FOLLOW_ADMIN = "cannot_follow_admin";
 
     /**
      * Account
@@ -51,6 +49,11 @@ public final class ErrorMessageConstants {
     public static final String ACCOUNT_ID_IS_REQUIRED = "account_id_is_required";
     public static final String ACCOUNT_IS_NOT_AVAILABLE = "account_is_not_available";
     public static final String CANNOT_FOLLOW_YOURSELF = "cannot_follow_yourself";
+    public static final String ALREADY_FOLLOWED = "already_followed";
+    public static final String CANNOT_FOLLOW_ADMIN = "cannot_follow_admin";
+    public static final String CANNOT_UNFOLLOW_YOURSELF = "cannot_unfollow_yourself";
+    public static final String CANNOT_UNFOLLOW_ADMIN = "cannot_unfollow_admin";
+    public static final String ALREADY_UNFOLLOWED = "already_unfollowed";
 
     /**
      * Thread
@@ -63,6 +66,10 @@ public final class ErrorMessageConstants {
     public static final String PRIVATE_THREAD_CAN_NOT_HAVE_COMMENT = "private_thread_can_not_have_comment";
     public static final String THREAD_LIKED = "thread_liked";
     public static final String THREAD_UNLIKED = "thread_unliked";
+    public static final String CANNOT_SHARE_YOUR_OWN_THREAD = "cannot_share_your_own_thread";
+    public static final String ALREADY_SHARED = "already_shared";
+    public static final String CANNOT_UNSHARED_YOUR_OWN_THREAD = "cannot_unshared_your_own_thread";
+    public static final String ALREADY_UNSHARED = "already_unshared";
 
     /**
      * Repost

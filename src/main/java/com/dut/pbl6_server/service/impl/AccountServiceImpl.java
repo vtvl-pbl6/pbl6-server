@@ -4,6 +4,7 @@ import com.dut.pbl6_server.common.constant.ErrorMessageConstants;
 import com.dut.pbl6_server.common.enums.NotificationType;
 import com.dut.pbl6_server.common.exception.BadRequestException;
 import com.dut.pbl6_server.common.model.DataWithPage;
+import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.common.util.PageUtils;
 import com.dut.pbl6_server.dto.respone.AccountResponse;
 import com.dut.pbl6_server.entity.Account;
@@ -91,14 +92,40 @@ public class AccountServiceImpl implements AccountService {
         if (currentUser.getId().equals(userId))
             throw new BadRequestException(ErrorMessageConstants.CANNOT_FOLLOW_YOURSELF);
 
-        // Check if user is already followed
-        if (followersRepository.isFollowing(userId, currentUser.getId()))
+        // Save follower to database if not exists else set deleted_at to null
+        var follower = followersRepository.findByFollowerIdAndUserId(currentUser.getId(), userId).orElse(null);
+        if (follower == null)
+            follower = new Follower(currentUser, user);
+        else if (follower.getDeletedAt() != null)
+            follower.setDeletedAt(null);
+        else
             throw new BadRequestException(ErrorMessageConstants.ALREADY_FOLLOWED);
-
-        // Follow user (save to database)
-        followersRepository.save(new Follower(currentUser, user));
+        followersRepository.save(follower);
 
         // send notification (via stomp websocket)
         notificationService.sendNotification(currentUser, user, NotificationType.FOLLOW, null);
+    }
+
+    @Override
+    public void unfollowUser(Account currentUser, Long userId) {
+        var user = accountsRepository.findById(userId).orElseThrow(() -> new BadRequestException(ErrorMessageConstants.ACCOUNT_NOT_FOUND));
+        // Check if user is admin
+        if (user.getRole() == AccountRole.ADMIN)
+            throw new BadRequestException(ErrorMessageConstants.CANNOT_UNFOLLOW_ADMIN);
+
+        // Check if user who is followed is current user
+        if (currentUser.getId().equals(userId))
+            throw new BadRequestException(ErrorMessageConstants.CANNOT_UNFOLLOW_YOURSELF);
+
+        // Set deleted_at to current time if follower exists else throw exception
+        var follower = followersRepository.findByFollowerIdAndUserId(currentUser.getId(), userId).orElse(null);
+        if (follower != null && follower.getDeletedAt() == null)
+            follower.setDeletedAt(CommonUtils.DateTime.getCurrentTimestamp());
+        else
+            throw new BadRequestException(ErrorMessageConstants.ALREADY_UNFOLLOWED);
+        followersRepository.save(follower);
+
+        // send notification (via stomp websocket)
+        notificationService.sendNotification(currentUser, user, NotificationType.UNFOLLOW, null);
     }
 }

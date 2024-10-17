@@ -40,6 +40,7 @@ public enum WebSocketDestination {
 
         return switch (type) {
             case FOLLOW,
+                 UNFOLLOW,
                  COMMENT,
                  REQUEST_THREAD_MODERATION,
                  REQUEST_THREAD_MODERATION_FAILED,
@@ -47,7 +48,7 @@ public enum WebSocketDestination {
                 case USER -> PRIVATE_USER_NOTIFICATION;
                 case ADMIN -> PRIVATE_ADMIN_NOTIFICATION;
             };
-            case LIKE, UNLIKE, SHARE, CREATE_THREAD_DONE -> switch (receiverRole) {
+            case LIKE, UNLIKE, SHARE, UNSHARED, CREATE_THREAD_DONE -> switch (receiverRole) {
                 case USER -> PRIVATE_USER_THREAD;
                 case ADMIN -> PRIVATE_ADMIN_THREAD;
             };

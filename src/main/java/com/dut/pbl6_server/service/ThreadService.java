@@ -24,4 +24,6 @@ public interface ThreadService {
     void unlikeThread(Account currentUser, Long threadId);
 
     void shareThread(Account currentUser, Long threadId);
+
+    void unsharedThread(Account currentUser, Long threadId);
 }
