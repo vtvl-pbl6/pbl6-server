@@ -23,6 +23,9 @@ invalid_uuid:
 invalid_enum:
   code: ERR_REQ0103
   message: Enum không hợp lệ!
+forbidden_action:
+  code: ERR_REQ0104
+  message: Bạn không có quyền thực hiện hành động này!
 
 # Authentication
 api_key_is_required:
@@ -171,6 +174,9 @@ already_shared:
 already_unshared:
   code: ERR_THR0112
   message: Bạn đã bỏ chia sẻ bài viết này!
+thread_update_request_invalid:
+  code: ERR_THR0113
+  message: Yêu cầu cập nhật bài viết không hợp lệ!
 
 # Repost
 repost_not_found:

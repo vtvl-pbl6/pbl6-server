@@ -48,7 +48,7 @@ public enum WebSocketDestination {
                 case USER -> PRIVATE_USER_NOTIFICATION;
                 case ADMIN -> PRIVATE_ADMIN_NOTIFICATION;
             };
-            case LIKE, UNLIKE, SHARE, UNSHARED, CREATE_THREAD_DONE -> switch (receiverRole) {
+            case LIKE, UNLIKE, SHARE, UNSHARED, CREATE_THREAD_DONE, EDIT_THREAD -> switch (receiverRole) {
                 case USER -> PRIVATE_USER_THREAD;
                 case ADMIN -> PRIVATE_ADMIN_THREAD;
             };

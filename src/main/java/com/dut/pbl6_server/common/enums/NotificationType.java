@@ -18,7 +18,8 @@ public enum NotificationType {
     LIKE("like", false),
     UNLIKE("unlike", false),
     SHARE("share", false),
-    UNSHARED("unshared", false);
+    UNSHARED("unshared", false),
+    EDIT_THREAD("edit_thread", false);
 
     private final String value;
     private final boolean saveToDatabase;

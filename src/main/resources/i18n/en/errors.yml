@@ -23,6 +23,9 @@ invalid_uuid:
 invalid_enum:
   code: ERR_REQ0103
   message: Invalid enum!
+forbidden_action:
+  code: ERR_REQ0104
+  message: You do not have permission to perform this action!
 
 # Authentication
 api_key_is_required:
@@ -171,6 +174,9 @@ already_shared:
 already_unshared:
   code: ERR_THR0112
   message: You have already unshared this thread!
+thread_update_request_invalid:
+  code: ERR_THR0113
+  message: Update thread must be updated the content or files!
 
 # Repost
 repost_not_found:

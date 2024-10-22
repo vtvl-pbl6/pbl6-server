@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 public interface ThreadService {
     ThreadResponse createThread(Account currentUser, ThreadRequest request);
 
+    ThreadResponse updateThread(Account currentUser, ThreadRequest request);
+
     ThreadResponse getThreadById(Account currentUser, Long threadId);
 
     DataWithPage<ThreadResponse> getThreadsByAuthorId(Account currentUser, Long authorId, Pageable pageable);

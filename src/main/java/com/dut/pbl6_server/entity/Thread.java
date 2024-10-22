@@ -21,7 +21,7 @@ import java.util.List;
 @SuperBuilder
 @Entity
 @Table(name = "threads")
-public class Thread extends AbstractEntity {
+public class Thread extends AbstractEntity implements Cloneable {
     @ManyToOne
     @JoinColumn(name = "author_id", nullable = false)
     private Account author;
@@ -73,4 +73,13 @@ public class Thread extends AbstractEntity {
 
     @OneToMany(mappedBy = "parentThread", fetch = FetchType.LAZY)
     private List<Thread> comments;
+
+    @Override
+    public Thread clone() {
+        try {
+            return (Thread) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

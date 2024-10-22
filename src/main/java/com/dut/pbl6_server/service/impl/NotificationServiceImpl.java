@@ -152,7 +152,7 @@ public class NotificationServiceImpl implements NotificationService {
                         ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, ": " + thread.getContent())
                         : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, "");
                 }
-                case LIKE, UNLIKE, SHARE, UNSHARED, CREATE_THREAD_DONE, UNFOLLOW -> null;
+                case LIKE, UNLIKE, SHARE, UNSHARED, CREATE_THREAD_DONE, UNFOLLOW, EDIT_THREAD -> null;
             };
         } catch (Exception e) {
             return null;

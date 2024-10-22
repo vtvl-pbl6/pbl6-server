@@ -96,7 +96,7 @@ public class ThreadServiceImpl implements ThreadService {
         }
 
         // Moderate the content and files
-        if (CommonUtils.String.isNotEmptyOrNull(request.getContent()))
+        if (CommonUtils.String.isNotEmptyOrNull(request.getContent()) || CommonUtils.List.isNotEmptyOrNull(request.getFiles()))
             contentModerationTaskService.moderate(createdThread);
 
         // Send notification to the author of the parent thread
@@ -104,6 +104,58 @@ public class ThreadServiceImpl implements ThreadService {
             notificationService.sendNotification(currentUser, createdThread.getParentThread().getAuthor(), NotificationType.COMMENT, createdThread);
 
         return threadMapper.toResponse(createdThread);
+    }
+
+    @Override
+    public ThreadResponse updateThread(Account currentUser, ThreadRequest request) {
+        var origialThread = threadsRepository.findById(request.getCurrentThreadId())
+            .orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
+        var originalThreadFiles = threadFilesRepository.findAllByThreadId(origialThread.getId());
+        origialThread.setFiles(originalThreadFiles);
+        try {
+            Thread needUpdateThread = origialThread.clone();
+            // Check permission
+            if (!currentUser.getId().equals(needUpdateThread.getAuthor().getId()))
+                throw new BadRequestException(ErrorMessageConstants.FORBIDDEN_ACTION);
+
+            // Update the thread
+            if (CommonUtils.String.isNotEmptyOrNull(request.getContent()))
+                needUpdateThread.setContent(request.getContent());
+            if (CommonUtils.List.isNotEmptyOrNull(request.getFiles())) {
+                var uploadedFiles = cloudinaryService.uploadFiles(request.getFiles());
+                var threadFilesTmp = new ArrayList<ThreadFile>();
+                for (var file : uploadedFiles) {
+                    threadFilesTmp.add(
+                        ThreadFile.builder()
+                            .thread(needUpdateThread)
+                            .file(file)
+                            .build()
+                    );
+                }
+                threadFilesRepository.deleteAll(needUpdateThread.getFiles()); // Delete old files
+                var createdThreadFiles = threadFilesRepository.saveAll(threadFilesTmp); // Save the new files
+                needUpdateThread.setFiles(createdThreadFiles);
+            }
+            needUpdateThread.setVisibility(request.getVisibility());
+            needUpdateThread.setHosResult(null); // Reset hos result
+            needUpdateThread.setStatus(ThreadStatus.CREATING); // Change status to creating to moderate the content and files
+            threadsRepository.save(needUpdateThread);
+
+
+            // Moderate the content and files
+            if (CommonUtils.String.isNotEmptyOrNull(request.getContent()) || CommonUtils.List.isNotEmptyOrNull(request.getFiles()))
+                contentModerationTaskService.moderate(needUpdateThread);
+
+            // Send notification to public
+            notificationService.sendNotification(null, null, NotificationType.EDIT_THREAD, needUpdateThread);
+
+            return threadMapper.toResponse(needUpdateThread);
+        } catch (Exception e) {
+            // Rollback without @Transactional
+            threadsRepository.save(origialThread);
+            threadFilesRepository.saveAll(originalThreadFiles);
+            throw e;
+        }
     }
 
     @Override
