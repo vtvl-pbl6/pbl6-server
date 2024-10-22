@@ -23,6 +23,9 @@ invalid_uuid:
 invalid_enum:
   code: ERR_REQ0103
   message: Invalid enum!
+forbidden_action:
+  code: ERR_REQ0104
+  message: You do not have permission to perform this action!
 
 # Authentication
 api_key_is_required:
@@ -104,12 +107,21 @@ account_is_not_available:
 cannot_follow_yourself:
   code: ERR_ACC0110
   message: You can not follow yourself!
-already_followed:
+cannot_unfollow_yourself:
   code: ERR_ACC0111
+  message: You can not unfollow yourself!
+already_followed:
+  code: ERR_ACC0112
   message: You have already followed this account!
 cannot_follow_admin:
-  code: ERR_ACC0112
+  code: ERR_ACC0113
   message: You can not follow admin account!
+cannot_unfollow_admin:
+  code: ERR_ACC0114
+  message: You can not unfollow admin account!
+already_unfollowed:
+  code: ERR_ACC0115
+  message: You have already unfollowed this account!
 
 # File
 upload_file_failed:
@@ -144,6 +156,27 @@ thread_parent_not_available:
 private_thread_can_not_have_comment:
   code: ERR_THR0106
   message: You can not comment on a private thread!
+thread_liked:
+  code: ERR_THR0107
+  message: You have already liked this thread!
+thread_unliked:
+  code: ERR_THR0108
+  message: You have already unliked this thread!
+cannot_share_your_own_thread:
+  code: ERR_THR0109
+  message: You can not share your own thread!
+cannot_unshared_your_own_thread:
+  code: ERR_THR0110
+  message: You can not unshared your own thread!
+already_shared:
+  code: ERR_THR0111
+  message: You have already shared this thread!
+already_unshared:
+  code: ERR_THR0112
+  message: You have already unshared this thread!
+thread_update_request_invalid:
+  code: ERR_THR0113
+  message: Update thread must be updated the content or files!
 
 # Repost
 repost_not_found:

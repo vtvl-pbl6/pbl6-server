@@ -1,6 +1,7 @@
 package com.dut.pbl6_server.service.impl;
 
 import com.dut.pbl6_server.common.constant.ErrorMessageConstants;
+import com.dut.pbl6_server.common.enums.NotificationType;
 import com.dut.pbl6_server.common.exception.BadRequestException;
 import com.dut.pbl6_server.common.exception.NotFoundObjectException;
 import com.dut.pbl6_server.common.model.DataWithPage;
@@ -8,18 +9,15 @@ import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.common.util.PageUtils;
 import com.dut.pbl6_server.dto.request.ThreadRequest;
 import com.dut.pbl6_server.dto.respone.ThreadResponse;
-import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.Thread;
-import com.dut.pbl6_server.entity.ThreadFile;
+import com.dut.pbl6_server.entity.*;
 import com.dut.pbl6_server.entity.enums.ThreadStatus;
 import com.dut.pbl6_server.entity.enums.Visibility;
 import com.dut.pbl6_server.mapper.ThreadMapper;
 import com.dut.pbl6_server.repository.fetch_data.ThreadsFetchRepository;
-import com.dut.pbl6_server.repository.jpa.FollowersRepository;
-import com.dut.pbl6_server.repository.jpa.ThreadFilesRepository;
-import com.dut.pbl6_server.repository.jpa.ThreadSharersRepository;
-import com.dut.pbl6_server.repository.jpa.ThreadsRepository;
+import com.dut.pbl6_server.repository.jpa.*;
 import com.dut.pbl6_server.service.CloudinaryService;
+import com.dut.pbl6_server.service.NotificationService;
 import com.dut.pbl6_server.service.ThreadService;
 import com.dut.pbl6_server.task_executor.service.ContentModerationTaskService;
 import lombok.RequiredArgsConstructor;
@@ -36,12 +34,14 @@ import java.util.List;
 public class ThreadServiceImpl implements ThreadService {
     private final ContentModerationTaskService contentModerationTaskService;
     private final CloudinaryService cloudinaryService;
-    private final ThreadFilesRepository threadFilesRepository;
+    private final NotificationService notificationService;
     private final ThreadsRepository threadsRepository;
     private final ThreadsFetchRepository threadsFetchRepository;
+    private final ThreadFilesRepository threadFilesRepository;
+    private final ThreadSharersRepository threadSharersRepository;
+    private final ThreadReactUsersRepository threadReactUsersRepository;
     private final FollowersRepository followersRepository;
     private final ThreadMapper threadMapper;
-    private final ThreadSharersRepository threadSharersRepository;
 
     @Override
     @Transactional
@@ -96,10 +96,66 @@ public class ThreadServiceImpl implements ThreadService {
         }
 
         // Moderate the content and files
-        if (CommonUtils.String.isNotEmptyOrNull(request.getContent()))
+        if (CommonUtils.String.isNotEmptyOrNull(request.getContent()) || CommonUtils.List.isNotEmptyOrNull(request.getFiles()))
             contentModerationTaskService.moderate(createdThread);
 
+        // Send notification to the author of the parent thread
+        if (parentThread != null)
+            notificationService.sendNotification(currentUser, createdThread.getParentThread().getAuthor(), NotificationType.COMMENT, createdThread);
+
         return threadMapper.toResponse(createdThread);
+    }
+
+    @Override
+    public ThreadResponse updateThread(Account currentUser, ThreadRequest request) {
+        var origialThread = threadsRepository.findById(request.getCurrentThreadId())
+            .orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
+        var originalThreadFiles = threadFilesRepository.findAllByThreadId(origialThread.getId());
+        origialThread.setFiles(originalThreadFiles);
+        try {
+            Thread needUpdateThread = origialThread.clone();
+            // Check permission
+            if (!currentUser.getId().equals(needUpdateThread.getAuthor().getId()))
+                throw new BadRequestException(ErrorMessageConstants.FORBIDDEN_ACTION);
+
+            // Update the thread
+            if (CommonUtils.String.isNotEmptyOrNull(request.getContent()))
+                needUpdateThread.setContent(request.getContent());
+            if (CommonUtils.List.isNotEmptyOrNull(request.getFiles())) {
+                var uploadedFiles = cloudinaryService.uploadFiles(request.getFiles());
+                var threadFilesTmp = new ArrayList<ThreadFile>();
+                for (var file : uploadedFiles) {
+                    threadFilesTmp.add(
+                        ThreadFile.builder()
+                            .thread(needUpdateThread)
+                            .file(file)
+                            .build()
+                    );
+                }
+                threadFilesRepository.deleteAll(needUpdateThread.getFiles()); // Delete old files
+                var createdThreadFiles = threadFilesRepository.saveAll(threadFilesTmp); // Save the new files
+                needUpdateThread.setFiles(createdThreadFiles);
+            }
+            needUpdateThread.setVisibility(request.getVisibility());
+            needUpdateThread.setHosResult(null); // Reset hos result
+            needUpdateThread.setStatus(ThreadStatus.CREATING); // Change status to creating to moderate the content and files
+            threadsRepository.save(needUpdateThread);
+
+
+            // Moderate the content and files
+            if (CommonUtils.String.isNotEmptyOrNull(request.getContent()) || CommonUtils.List.isNotEmptyOrNull(request.getFiles()))
+                contentModerationTaskService.moderate(needUpdateThread);
+
+            // Send notification to public
+            notificationService.sendNotification(null, null, NotificationType.EDIT_THREAD, needUpdateThread);
+
+            return threadMapper.toResponse(needUpdateThread);
+        } catch (Exception e) {
+            // Rollback without @Transactional
+            threadsRepository.save(origialThread);
+            threadFilesRepository.saveAll(originalThreadFiles);
+            throw e;
+        }
     }
 
     @Override
@@ -248,4 +304,119 @@ public class ThreadServiceImpl implements ThreadService {
         );
     }
 
+    @Override
+    @Transactional
+    public void likeThread(Account currentUser, Long threadId) {
+        var thread = checkThreadVisibility(currentUser, threadId);
+
+        // Save react user to database if not exists else set deleted_at to null
+        var reactUser = threadReactUsersRepository.findByThreadIdAndUserId(threadId, currentUser.getId()).orElse(null);
+        if (reactUser == null)
+            reactUser = ThreadReactUser.builder()
+                .thread(thread)
+                .user(currentUser)
+                .build();
+        else if (reactUser.getDeletedAt() != null)
+            reactUser.setDeletedAt(null);
+        else
+            throw new BadRequestException(ErrorMessageConstants.THREAD_LIKED);
+        threadReactUsersRepository.save(reactUser);
+
+        // Update reaction_num in the thread
+        thread.setReactionNum(thread.getReactionNum() + 1);
+        threadsRepository.save(thread);
+
+        // Send notification to all subscribers
+        notificationService.sendNotification(null, null, NotificationType.LIKE, thread);
+    }
+
+    @Override
+    @Transactional
+    public void unlikeThread(Account currentUser, Long threadId) {
+        var thread = checkThreadVisibility(currentUser, threadId);
+
+        // Set deleted_at to current time if react user exists else throw exception
+        var reactUser = threadReactUsersRepository.findByThreadIdAndUserId(threadId, currentUser.getId()).orElse(null);
+        if (reactUser != null && reactUser.getDeletedAt() == null)
+            reactUser.setDeletedAt(CommonUtils.DateTime.getCurrentTimestamp());
+        else
+            throw new BadRequestException(ErrorMessageConstants.THREAD_UNLIKED);
+        threadReactUsersRepository.save(reactUser);
+
+        // Update reaction_num in the thread
+        thread.setReactionNum(thread.getReactionNum() - 1);
+        threadsRepository.save(thread);
+
+        // Send notification to all subscribers
+        notificationService.sendNotification(null, null, NotificationType.UNLIKE, thread);
+    }
+
+    @Override
+    @Transactional
+    public void shareThread(Account currentUser, Long threadId) {
+        var thread = checkThreadVisibility(currentUser, threadId);
+
+        // Check current user is thread's author
+        if (currentUser.getId().equals(thread.getAuthor().getId()))
+            throw new BadRequestException(ErrorMessageConstants.CANNOT_SHARE_YOUR_OWN_THREAD);
+
+        // Save sharer to database if not exists else throw exception
+        var sharer = threadSharersRepository.findByThreadIdAndUserId(threadId, currentUser.getId()).orElse(null);
+        if (sharer != null)
+            throw new BadRequestException(ErrorMessageConstants.ALREADY_SHARED);
+        else
+            sharer = new ThreadSharer(thread, currentUser);
+        threadSharersRepository.save(sharer);
+
+        // Update shared_num in the thread
+        thread.setSharedNum(thread.getSharedNum() + 1);
+        threadsRepository.save(thread);
+
+        // Send notification to all subscribers
+        notificationService.sendNotification(null, null, NotificationType.SHARE, thread);
+    }
+
+    @Override
+    @Transactional
+    public void unsharedThread(Account currentUser, Long threadId) {
+        var thread = checkThreadVisibility(currentUser, threadId);
+
+        // Check current user is thread's author
+        if (currentUser.getId().equals(thread.getAuthor().getId()))
+            throw new BadRequestException(ErrorMessageConstants.CANNOT_UNSHARED_YOUR_OWN_THREAD);
+
+        // Delete sharer from database if exists else throw exception
+        var sharer = threadSharersRepository.findByThreadIdAndUserId(threadId, currentUser.getId()).orElse(null);
+        if (sharer == null)
+            throw new BadRequestException(ErrorMessageConstants.ALREADY_UNSHARED);
+        else
+            threadSharersRepository.delete(sharer);
+
+        // Update shared_num in the thread
+        thread.setSharedNum(thread.getSharedNum() - 1);
+        threadsRepository.save(thread);
+
+        // Send notification to all subscribers
+        notificationService.sendNotification(null, null, NotificationType.UNSHARED, thread);
+    }
+
+    private Thread checkThreadVisibility(Account currentUser, Long threadId) {
+        var thread = threadsRepository.findById(threadId).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
+        boolean isAuthor = currentUser.getId().equals(thread.getAuthor().getId());
+
+        // Throw exception if the thread is creating
+        if (thread.getStatus() == ThreadStatus.CREATING)
+            throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
+
+        // Check thread's visibility for the current user who is not the author of the thread
+        if (!isAuthor)
+            switch (thread.getVisibility()) {
+                case PRIVATE -> throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
+                case FRIEND_ONLY -> {
+                    if (!followersRepository.isFollowing(thread.getAuthor().getId(), currentUser.getId()))
+                        throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
+                }
+            }
+        return thread;
+    }
 }

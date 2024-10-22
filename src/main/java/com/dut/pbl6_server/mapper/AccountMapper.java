@@ -17,6 +17,7 @@ import java.util.List;
 public interface AccountMapper {
     String TO_RESPONSE_NAMED = "account_to_response";
     String TO_NOTIFICATION_USER_RESPONSE_NAMED = "account_to_notification_user_response";
+    String TO_THREAD_SHARER_RESPONSE_NAMED = "account_to_thread_sharer_response";
     String TO_USER_RESPONSE_NAMED = "account_to_user_response";
     AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
 
@@ -38,7 +39,25 @@ public interface AccountMapper {
     @Mapping(source = "deletedAt", target = "deletedAt", ignore = true)
     @Mapping(source = "followers", target = "followerNum", ignore = true)
     @Mapping(source = "followingUsers", target = "followingUserNum", ignore = true)
-    AccountResponse toNotificationUserResponse(Account account);
+    AccountResponse toNotificationUserResponse(Account account); // Only include [id, email, firstName, lastName, displayName, avatar]
+
+    @Named(TO_THREAD_SHARER_RESPONSE_NAMED)
+    @Mapping(source = "email", target = "email", ignore = true)
+    @Mapping(source = "firstName", target = "firstName", ignore = true)
+    @Mapping(source = "lastName", target = "lastName", ignore = true)
+    @Mapping(source = "status", target = "status", ignore = true)
+    @Mapping(source = "role", target = "role", ignore = true)
+    @Mapping(source = "birthday", target = "birthday", ignore = true)
+    @Mapping(source = "gender", target = "gender", ignore = true)
+    @Mapping(source = "bio", target = "bio", ignore = true)
+    @Mapping(source = "visibility", target = "visibility", ignore = true)
+    @Mapping(source = "language", target = "language", ignore = true)
+    @Mapping(source = "createdAt", target = "createdAt", ignore = true)
+    @Mapping(source = "updatedAt", target = "updatedAt", ignore = true)
+    @Mapping(source = "deletedAt", target = "deletedAt", ignore = true)
+    @Mapping(source = "followers", target = "followerNum", ignore = true)
+    @Mapping(source = "followingUsers", target = "followingUserNum", ignore = true)
+    AccountResponse toThreadSharerResponse(Account account); // Only include [id, displayName, avatar]
 
     @Named(TO_USER_RESPONSE_NAMED)
     @Mapping(source = "account.status", target = "status", ignore = true)

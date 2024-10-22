@@ -6,8 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ThreadSharersRepository extends JpaRepository<ThreadSharer, Long> {
-    @Query("SELECT t.thread.id FROM ThreadSharer t WHERE t.user.id = :userId")
+    @Query("SELECT t.thread.id FROM ThreadSharer t WHERE t.user.id = :userId AND t.deletedAt IS NULL")
     List<Long> getListThreadIdByUserId(@Param("userId") Long userId);
+
+    Optional<ThreadSharer> findByThreadIdAndUserId(Long threadId, Long userId);
 }

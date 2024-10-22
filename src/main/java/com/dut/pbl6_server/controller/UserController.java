@@ -54,4 +54,10 @@ public class UserController {
         accountService.followUser(account, id);
         return null;
     }
+
+    @PostMapping("/{id}/unfollow")
+    public Object unfollowUser(@CurrentAccount Account account, @PathVariable Long id) {
+        accountService.unfollowUser(account, id);
+        return null;
+    }
 }

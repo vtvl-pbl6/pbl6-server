@@ -75,7 +75,10 @@ public class NotificationServiceImpl implements NotificationService {
                     response
                 );
             else
-                webSocketUtils.sendToAllSubscribers(WebSocketDestination.PUBLIC_USER, response);
+                webSocketUtils.sendToAllSubscribers(
+                    WebSocketDestination.getDestination(type, null, sender != null ? sender.getRole() : null),
+                    response
+                );
         } catch (Exception e) {
             if (receiver != null) webSocketUtils.sendError(receiver.getEmail(), e);
         }
@@ -149,7 +152,7 @@ public class NotificationServiceImpl implements NotificationService {
                         ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, ": " + thread.getContent())
                         : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, "");
                 }
-                case LIKE, SHARE, CREATE_THREAD_DONE -> null;
+                case LIKE, UNLIKE, SHARE, UNSHARED, CREATE_THREAD_DONE, UNFOLLOW, EDIT_THREAD -> null;
             };
         } catch (Exception e) {
             return null;

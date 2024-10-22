@@ -1,7 +1,7 @@
 # Notification
 notification:
-  follow: "<b>{0}</b> <i18n>has started following you</i18n>"  # {0} is the display name of the follower
-  comment: "<b>{0}</b> <i18n>commented on your post</i18n>{1}"  # {0} is the display name of the commenter, {1} is the comment
-  request_thread_moderation: "<b>{0}</b> <i18n>has requested your review for the post</i18n>{1}"  # {0} is the display name of the requester, {1} is the post
+  follow: "<strong>{0}</strong> <i18n>has started following you</i18n>"  # {0} is the display name of the follower
+  comment: "<strong>{0}</strong> <i18n>commented on your post</i18n>{1}"  # {0} is the display name of the commenter, {1} is the comment
+  request_thread_moderation: "<strong>{0}</strong> <i18n>has requested your review for the post</i18n>{1}"  # {0} is the display name of the requester, {1} is the post
   request_thread_moderation_failed: "<i18n>Your post moderation has failed</i18n>{0}"  # {0} is the post title or description
   request_thread_moderation_success: "<i18n>Your post has been successfully moderated</i18n>{0}"  # {0} is the post title or description

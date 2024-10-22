@@ -14,13 +14,13 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "thread_files")
-public class ThreadFile extends AbstractEntity {
+@Table(name = "thread_react_users")
+public class ThreadReactUser extends AbstractEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "thread_id", nullable = false)
     private Thread thread;
 
-    @OneToOne
-    @JoinColumn(name = "file_id", nullable = false, unique = true)
-    private File file;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private Account user;
 }

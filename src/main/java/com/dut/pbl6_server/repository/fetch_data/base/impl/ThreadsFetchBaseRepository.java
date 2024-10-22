@@ -2,6 +2,7 @@ package com.dut.pbl6_server.repository.fetch_data.base.impl;
 
 import com.dut.pbl6_server.entity.Thread;
 import com.dut.pbl6_server.entity.ThreadFile;
+import com.dut.pbl6_server.entity.ThreadReactUser;
 import com.dut.pbl6_server.repository.fetch_data.base.FetchBaseRepository;
 import com.dut.pbl6_server.repository.fetch_data.base.custom_model.WhereElement;
 import jakarta.persistence.EntityManager;
@@ -67,13 +68,13 @@ public class ThreadsFetchBaseRepository implements FetchBaseRepository<Thread> {
                     SELECT tf
                     FROM ThreadFile tf
                     LEFT JOIN FETCH tf.file
-                    WHERE tf.thread in :values
+                    WHERE tf.thread IN :values
                     """,
                 ThreadFile.class)
             .setParameter("values", values)
             .getResultList();
 
-        values = values.stream().peek(
+        values = values.stream().peek( // Set 'files' for each thread
             v -> v.setFiles(
                 files.stream().filter(
                     tmp -> tmp.getThread().getId().equals(v.getId())
@@ -89,15 +90,47 @@ public class ThreadsFetchBaseRepository implements FetchBaseRepository<Thread> {
                     LEFT JOIN FETCH t.author ta
                     LEFT JOIN FETCH ta.avatarFile
                     LEFT JOIN FETCH t.files
-                    WHERE t.parentThread in :values
+                    WHERE t.parentThread IN :values
                     """,
                 Thread.class)
             .setParameter("values", values)
             .getResultList();
 
-        values = values.stream().peek(
+        // Fetch 'react users' relation for threads and comments
+        var reactUsers = em.createQuery(
+                """
+                    SELECT tru
+                    FROM ThreadReactUser tru
+                    LEFT JOIN FETCH tru.user
+                    LEFT JOIN FETCH tru.user.avatarFile
+                    WHERE
+                        (tru.thread IN :threads OR tru.thread IN :comments)
+                        AND tru.deletedAt IS NULL
+                    """,
+                ThreadReactUser.class)
+            .setParameter("threads", values)
+            .setParameter("comments", comments)
+            .getResultList();
+
+        var finalComments = comments.stream().peek( // Set 'react users' for each comment
+            v -> v.setReactUsers(
+                reactUsers.stream().filter(
+                    tmp -> tmp.getThread().getId().equals(v.getId())
+                ).toList()
+            )
+        ).toList();
+
+        values = values.stream().peek( // Set 'react users' for each thread
+            v -> v.setReactUsers(
+                reactUsers.stream().filter(
+                    tmp -> tmp.getThread().getId().equals(v.getId())
+                ).toList()
+            )
+        ).toList();
+
+        values = values.stream().peek( // Set 'comments' for each thread
             v -> v.setComments(
-                comments.stream().filter(
+                finalComments.stream().filter(
                     tmp -> tmp.getParentThread().getId().equals(v.getId())
                 ).toList()
             )

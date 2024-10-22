@@ -63,6 +63,73 @@ public class ThreadController {
         if (CommonUtils.String.isEmptyOrNull(content) && CommonUtils.List.isEmptyOrNull(files))
             throw new BadRequestException(ErrorMessageConstants.THREAD_REQUEST_INVALID);
         var visibilityEnum = CommonUtils.stringToEnum(visibility, Visibility.class);
-        return threadService.createThread(account, new ThreadRequest(content, parentId, files, visibilityEnum));
+        return threadService.createThread(
+            account,
+            ThreadRequest.builder()
+                .content(content)
+                .files(files)
+                .parentId(parentId)
+                .visibility(visibilityEnum)
+                .build()
+        );
+    }
+
+    @PutMapping("{id}")
+    public Object updateThread(
+        @CurrentAccount Account account,
+        @PathVariable Long id,
+        @RequestParam(name = "content", required = false) String content,
+        @RequestParam(name = "files", required = false) List<MultipartFile> files,
+        @RequestParam(name = "visibility", defaultValue = "public") String visibility
+    ) {
+        // Validate data
+        if (CommonUtils.String.isEmptyOrNull(content) && CommonUtils.List.isEmptyOrNull(files))
+            throw new BadRequestException(ErrorMessageConstants.THREAD_UPDATE_REQUEST_INVALID);
+        var visibilityEnum = CommonUtils.stringToEnum(visibility, Visibility.class);
+        return threadService.updateThread(
+            account,
+            ThreadRequest.builder()
+                .currentThreadId(id)
+                .content(content)
+                .files(files)
+                .visibility(visibilityEnum)
+                .build()
+        );
+    }
+
+    @PostMapping("/{threadId}/share")
+    public Object shareThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        threadService.shareThread(account, threadId);
+        return null;
+    }
+
+    @PostMapping("/{threadId}/unshared")
+    public Object unsharedThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        threadService.unsharedThread(account, threadId);
+        return null;
+    }
+
+    @PatchMapping("/{threadId}/like")
+    public Object likeThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        threadService.likeThread(account, threadId);
+        return null;
+    }
+
+    @PatchMapping("/{threadId}/unlike")
+    public Object unlikeThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        threadService.unlikeThread(account, threadId);
+        return null;
     }
 }
