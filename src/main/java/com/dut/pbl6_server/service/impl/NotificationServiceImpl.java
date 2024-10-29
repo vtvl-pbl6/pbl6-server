@@ -140,11 +140,23 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             return switch (type) {
                 case FOLLOW -> I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName());
-                case COMMENT, REQUEST_THREAD_MODERATION -> {
+                case REQUEST_THREAD_MODERATION -> {
                     var thread = (Thread) object;
                     yield CommonUtils.String.isNotEmptyOrNull(thread.getContent())
                         ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName(), ": " + thread.getContent())
                         : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName(), "");
+                }
+                case COMMENT -> {
+                    var thread = (Thread) object;
+                    yield CommonUtils.String.isNotEmptyOrNull(thread.getContent())
+                        ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, thread.getAuthor().getDisplayName(), ": " + thread.getContent())
+                        : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, thread.getAuthor().getDisplayName(), "");
+                }
+                case SHARE -> {
+                    var thread = (Thread) object;
+                    yield CommonUtils.String.isNotEmptyOrNull(thread.getContent())
+                        ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, thread.getSharers().getFirst().getUser().getDisplayName(), ": " + thread.getContent())
+                        : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, thread.getSharers().getFirst().getUser().getDisplayName(), "");
                 }
                 case REQUEST_THREAD_MODERATION_FAILED, REQUEST_THREAD_MODERATION_SUCCESS -> {
                     var thread = (Thread) object;
@@ -152,7 +164,7 @@ public class NotificationServiceImpl implements NotificationService {
                         ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, ": " + thread.getContent())
                         : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, "");
                 }
-                case LIKE, UNLIKE, SHARE, UNSHARED, CREATE_THREAD_DONE, UNFOLLOW, EDIT_THREAD -> null;
+                case LIKE, UNLIKE, UNSHARED, CREATE_THREAD_DONE, UNFOLLOW, EDIT_THREAD -> null;
             };
         } catch (Exception e) {
             return null;

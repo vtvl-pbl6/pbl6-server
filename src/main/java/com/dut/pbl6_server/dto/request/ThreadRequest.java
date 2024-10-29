@@ -21,4 +21,5 @@ public class ThreadRequest {
     private Long parentId;
     private List<MultipartFile> files;
     private Visibility visibility;
+    private List<Long> deleteFileIds;
 }

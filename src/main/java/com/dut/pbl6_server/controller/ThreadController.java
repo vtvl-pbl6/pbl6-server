@@ -78,23 +78,19 @@ public class ThreadController {
     public Object updateThread(
         @CurrentAccount Account account,
         @PathVariable Long id,
-        @RequestParam(name = "content", required = false) String content,
-        @RequestParam(name = "files", required = false) List<MultipartFile> files,
-        @RequestParam(name = "visibility", defaultValue = "public") String visibility
+        @RequestBody ThreadRequest request
     ) {
-        // Validate data
-        if (CommonUtils.String.isEmptyOrNull(content) && CommonUtils.List.isEmptyOrNull(files))
-            throw new BadRequestException(ErrorMessageConstants.THREAD_UPDATE_REQUEST_INVALID);
-        var visibilityEnum = CommonUtils.stringToEnum(visibility, Visibility.class);
-        return threadService.updateThread(
-            account,
-            ThreadRequest.builder()
-                .currentThreadId(id)
-                .content(content)
-                .files(files)
-                .visibility(visibilityEnum)
-                .build()
-        );
+        request.setCurrentThreadId(id);
+        return threadService.updateThread(account, request);
+    }
+
+    @DeleteMapping("/{threadId}")
+    public Object deleteThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        threadService.deleteThread(account, threadId);
+        return null;
     }
 
     @PostMapping("/{threadId}/share")

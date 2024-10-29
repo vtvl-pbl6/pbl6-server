@@ -72,6 +72,7 @@ public final class ErrorMessageConstants {
     public static final String ALREADY_SHARED = "already_shared";
     public static final String CANNOT_UNSHARED_YOUR_OWN_THREAD = "cannot_unshared_your_own_thread";
     public static final String ALREADY_UNSHARED = "already_unshared";
+    public static final String CANNOT_CHANGE_VISIBILITY_OF_COMMENT = "cannot_change_visibility_of_comment";
 
     /**
      * Repost

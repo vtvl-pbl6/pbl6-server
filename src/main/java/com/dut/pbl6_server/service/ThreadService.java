@@ -11,6 +11,8 @@ public interface ThreadService {
 
     ThreadResponse updateThread(Account currentUser, ThreadRequest request);
 
+    void deleteThread(Account currentUser, Long threadId);
+
     ThreadResponse getThreadById(Account currentUser, Long threadId);
 
     DataWithPage<ThreadResponse> getThreadsByAuthorId(Account currentUser, Long authorId, Pageable pageable);

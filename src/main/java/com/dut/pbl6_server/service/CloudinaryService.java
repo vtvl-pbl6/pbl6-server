@@ -10,5 +10,7 @@ public interface CloudinaryService {
 
     List<File> uploadFiles(List<MultipartFile> files);
 
+    void deleteFiles(List<Long> ids);
+
     void deleteFileByUrl(String url);
 }

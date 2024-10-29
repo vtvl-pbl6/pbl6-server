@@ -18,6 +18,7 @@ import java.util.List;
 @Mapper(config = SpringMapStructConfig.class)
 public interface ThreadMapper {
     String TO_RESPONSE_NAMED = "thread_to_response";
+    String TO_RESPONSE_WITHOUT_COMMENTS_NAMED = "thread_to_response_without_comments";
     ThreadMapper INSTANCE = Mappers.getMapper(ThreadMapper.class);
 
     @Named(TO_RESPONSE_NAMED)
@@ -27,8 +28,20 @@ public interface ThreadMapper {
     @Mapping(source = "thread", target = "files", qualifiedByName = "getFiles")
     @Mapping(source = "sharers", target = "sharers", qualifiedByName = "getSharers")
     @Mapping(source = "reactUsers", target = "reactUsers", qualifiedByName = "getReactUsers")
+    @Mapping(source = "comments", target = "commentNum", qualifiedByName = "getCommentNum")
     @Mapping(source = "comments", target = "comments", qualifiedByName = "getComments")
     ThreadResponse toResponse(Thread thread);
+
+    @Named(TO_RESPONSE_WITHOUT_COMMENTS_NAMED)
+    @Mapping(source = "author", target = "author", qualifiedByName = "getAuthor")
+    @Mapping(source = "parentThread", target = "parentThread", qualifiedByName = "getParentThread")
+    @Mapping(source = "thread", target = "content", qualifiedByName = "getContent")
+    @Mapping(source = "thread", target = "files", qualifiedByName = "getFiles")
+    @Mapping(source = "sharers", target = "sharers", qualifiedByName = "getSharers")
+    @Mapping(source = "reactUsers", target = "reactUsers", qualifiedByName = "getReactUsers")
+    @Mapping(source = "comments", target = "commentNum", qualifiedByName = "getCommentNum")
+    @Mapping(source = "comments", target = "comments", ignore = true)
+    ThreadResponse toResponseWithoutComments(Thread thread);
 
     @Named("getAuthor")
     default AccountResponse getAuthor(Account author) {
@@ -83,11 +96,21 @@ public interface ThreadMapper {
         }
     }
 
-    @Named("getComments")
-    default List<ThreadResponse> getComments(List<Thread> threadFiles) {
+    @Named("getCommentNum")
+    default int getCommentNum(List<Thread> comments) {
         try {
-            if (CommonUtils.List.isEmptyOrNull(threadFiles)) return null;
-            return threadFiles.stream().map(this::toResponse).toList();
+            if (CommonUtils.List.isEmptyOrNull(comments)) return 0;
+            return comments.size();
+        } catch (LazyInitializationException e) {
+            return 0;
+        }
+    }
+
+    @Named("getComments")
+    default List<ThreadResponse> getComments(List<Thread> comments) {
+        try {
+            if (CommonUtils.List.isEmptyOrNull(comments)) return null;
+            return comments.stream().map(this::toResponseWithoutComments).toList();
         } catch (LazyInitializationException e) {
             return null;
         }

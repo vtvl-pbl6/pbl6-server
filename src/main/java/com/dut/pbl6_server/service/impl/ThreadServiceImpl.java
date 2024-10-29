@@ -41,69 +41,82 @@ public class ThreadServiceImpl implements ThreadService {
     private final ThreadSharersRepository threadSharersRepository;
     private final ThreadReactUsersRepository threadReactUsersRepository;
     private final FollowersRepository followersRepository;
+    private final NotificationsRepository notificationsRepository;
     private final ThreadMapper threadMapper;
 
     @Override
-    @Transactional
     public ThreadResponse createThread(Account currentUser, ThreadRequest request) {
         var parentThread = request.getParentId() != null
             ? threadsRepository.findById(request.getParentId()).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_PARENT_NOT_FOUND))
             : null;
-
-        // Check parent thread's visibility and status
-        if (parentThread != null) {
-            switch (parentThread.getVisibility()) {
-                case PRIVATE -> throw new BadRequestException(
-                    currentUser.getId().equals(parentThread.getAuthor().getId())
-                        ? ErrorMessageConstants.THREAD_PARENT_NOT_AVAILABLE
-                        : ErrorMessageConstants.PRIVATE_THREAD_CAN_NOT_HAVE_COMMENT
-                );
-                case FRIEND_ONLY -> {
-                    // if the current user is not following the author of the parent thread then the parent thread is not available
-                    if (!followersRepository.isFollowing(parentThread.getAuthor().getId(), currentUser.getId()))
-                        throw new BadRequestException(ErrorMessageConstants.THREAD_PARENT_NOT_AVAILABLE);
+        Thread createdThread = null;
+        List<ThreadFile> createdThreadFiles = null;
+        Long notificationId = null;
+        try {
+            // Check parent thread's visibility and status
+            if (parentThread != null) {
+                switch (parentThread.getVisibility()) {
+                    case PRIVATE -> throw new BadRequestException(
+                        currentUser.getId().equals(parentThread.getAuthor().getId())
+                            ? ErrorMessageConstants.THREAD_PARENT_NOT_AVAILABLE
+                            : ErrorMessageConstants.PRIVATE_THREAD_CAN_NOT_HAVE_COMMENT
+                    );
+                    case FRIEND_ONLY -> {
+                        // if the current user is not following the author of the parent thread then the parent thread is not available
+                        if (!followersRepository.isFollowing(parentThread.getAuthor().getId(), currentUser.getId()))
+                            throw new BadRequestException(ErrorMessageConstants.THREAD_PARENT_NOT_AVAILABLE);
+                    }
                 }
+
+                if (parentThread.getStatus() == ThreadStatus.CREATING || parentThread.getStatus() == ThreadStatus.PENDING)
+                    throw new BadRequestException(ErrorMessageConstants.THREAD_PARENT_NOT_AVAILABLE);
             }
 
-            if (parentThread.getStatus() == ThreadStatus.CREATING || parentThread.getStatus() == ThreadStatus.PENDING)
-                throw new BadRequestException(ErrorMessageConstants.THREAD_PARENT_NOT_AVAILABLE);
-        }
+            // Save a new thread
+            createdThread = threadsRepository.save(
+                Thread.builder()
+                    .author(currentUser)
+                    .content(request.getContent())
+                    .parentThread(parentThread)
+                    .visibility(parentThread != null ? Visibility.PUBLIC : request.getVisibility()) // Comment is always public
+                    .build()
+            );
 
-        // Save a new thread
-        var createdThread = threadsRepository.save(
-            Thread.builder()
-                .author(currentUser)
-                .content(request.getContent())
-                .parentThread(parentThread)
-                .visibility(request.getVisibility())
-                .build()
-        );
-
-        // Save the files of the thread
-        if (CommonUtils.List.isNotEmptyOrNull(request.getFiles())) {
-            var uploadedFiles = cloudinaryService.uploadFiles(request.getFiles());
-            var threadFiles = new ArrayList<ThreadFile>();
-            for (var file : uploadedFiles) {
-                threadFiles.add(
-                    ThreadFile.builder()
-                        .thread(createdThread)
-                        .file(file)
-                        .build()
-                );
+            // Save the files of the thread
+            if (CommonUtils.List.isNotEmptyOrNull(request.getFiles())) {
+                var uploadedFiles = cloudinaryService.uploadFiles(request.getFiles());
+                var threadFiles = new ArrayList<ThreadFile>();
+                for (var file : uploadedFiles) {
+                    threadFiles.add(
+                        ThreadFile.builder()
+                            .thread(createdThread)
+                            .file(file)
+                            .build()
+                    );
+                }
+                createdThreadFiles = threadFilesRepository.saveAll(threadFiles);
+                createdThread.setFiles(createdThreadFiles);
             }
-            var createdThreadFiles = threadFilesRepository.saveAll(threadFiles);
-            createdThread.setFiles(createdThreadFiles);
+
+            // Moderate the content and files
+            if (CommonUtils.String.isNotEmptyOrNull(request.getContent()) || CommonUtils.List.isNotEmptyOrNull(request.getFiles()))
+                contentModerationTaskService.moderate(createdThread);
+
+            // Send comment notification to all subscribers
+            if (parentThread != null)
+                notificationId = notificationService.sendNotification(null, null, NotificationType.COMMENT, createdThread).getId();
+
+            return threadMapper.toResponseWithoutComments(createdThread);
+        } catch (Exception ex) {
+            // Rollback without @Transactional
+            if (createdThread != null) threadsRepository.delete(createdThread);
+            if (CommonUtils.List.isNotEmptyOrNull(createdThreadFiles)) {
+                threadFilesRepository.deleteAll(createdThreadFiles);
+                cloudinaryService.deleteFiles(createdThreadFiles.stream().map(e -> e.getFile().getId()).toList());
+            }
+            if (notificationId != null) notificationsRepository.deleteById(notificationId);
+            throw ex;
         }
-
-        // Moderate the content and files
-        if (CommonUtils.String.isNotEmptyOrNull(request.getContent()) || CommonUtils.List.isNotEmptyOrNull(request.getFiles()))
-            contentModerationTaskService.moderate(createdThread);
-
-        // Send notification to the author of the parent thread
-        if (parentThread != null)
-            notificationService.sendNotification(currentUser, createdThread.getParentThread().getAuthor(), NotificationType.COMMENT, createdThread);
-
-        return threadMapper.toResponse(createdThread);
     }
 
     @Override
@@ -114,6 +127,11 @@ public class ThreadServiceImpl implements ThreadService {
         origialThread.setFiles(originalThreadFiles);
         try {
             Thread needUpdateThread = origialThread.clone();
+
+            // Check valid visibility
+            if (needUpdateThread.getParentThread() != null && request.getVisibility() != null)
+                throw new BadRequestException(ErrorMessageConstants.CANNOT_CHANGE_VISIBILITY_OF_COMMENT);
+
             // Check permission
             if (!currentUser.getId().equals(needUpdateThread.getAuthor().getId()))
                 throw new BadRequestException(ErrorMessageConstants.FORBIDDEN_ACTION);
@@ -121,20 +139,22 @@ public class ThreadServiceImpl implements ThreadService {
             // Update the thread
             if (CommonUtils.String.isNotEmptyOrNull(request.getContent()))
                 needUpdateThread.setContent(request.getContent());
-            if (CommonUtils.List.isNotEmptyOrNull(request.getFiles())) {
-                var uploadedFiles = cloudinaryService.uploadFiles(request.getFiles());
-                var threadFilesTmp = new ArrayList<ThreadFile>();
-                for (var file : uploadedFiles) {
-                    threadFilesTmp.add(
-                        ThreadFile.builder()
-                            .thread(needUpdateThread)
-                            .file(file)
-                            .build()
-                    );
-                }
-                threadFilesRepository.deleteAll(needUpdateThread.getFiles()); // Delete old files
-                var createdThreadFiles = threadFilesRepository.saveAll(threadFilesTmp); // Save the new files
-                needUpdateThread.setFiles(createdThreadFiles);
+            if (CommonUtils.List.isNotEmptyOrNull(request.getDeleteFileIds())) {
+                // Delete thread files
+                threadFilesRepository.deleteAllById(needUpdateThread.getFiles().stream()
+                    .filter(
+                        e -> request.getDeleteFileIds().contains(e.getFile().getId())
+                    ).toList()
+                    .stream().map(ThreadFile::getId).toList()
+                );
+                needUpdateThread.setFiles(needUpdateThread.getFiles().stream()
+                    .filter(
+                        e -> !request.getDeleteFileIds().contains(e.getFile().getId())
+                    ).toList()
+                );
+
+                // Delete files from cloudinary and database
+                cloudinaryService.deleteFiles(request.getDeleteFileIds());
             }
             needUpdateThread.setVisibility(request.getVisibility());
             needUpdateThread.setHosResult(null); // Reset hos result
@@ -149,7 +169,7 @@ public class ThreadServiceImpl implements ThreadService {
             // Send notification to public
             notificationService.sendNotification(null, null, NotificationType.EDIT_THREAD, needUpdateThread);
 
-            return threadMapper.toResponse(needUpdateThread);
+            return threadMapper.toResponseWithoutComments(needUpdateThread);
         } catch (Exception e) {
             // Rollback without @Transactional
             threadsRepository.save(origialThread);
@@ -159,13 +179,27 @@ public class ThreadServiceImpl implements ThreadService {
     }
 
     @Override
+    public void deleteThread(Account currentUser, Long threadId) {
+        var thread = threadsRepository.findById(threadId)
+            .orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
+
+        // Check permission
+        if (!currentUser.getId().equals(thread.getAuthor().getId()))
+            throw new BadRequestException(ErrorMessageConstants.FORBIDDEN_ACTION);
+
+        // Delete thread
+        thread.setDeletedAt(CommonUtils.DateTime.getCurrentTimestamp());
+        threadsRepository.save(thread);
+    }
+
+    @Override
     public ThreadResponse getThreadById(Account currentUser, Long threadId) {
         var thread = threadsFetchRepository.findById(threadId)
             .orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
 
         // Check if the current user is the author of the thread
         if (currentUser.getId().equals(thread.getAuthor().getId()))
-            return threadMapper.toResponse(thread);
+            return threadMapper.toResponse(getCommentsForEachThread(List.of(thread), true).getFirst());
 
         // Check thread's visibility for the current user who is not the author of the thread
         return switch (thread.getVisibility()) {
@@ -175,9 +209,9 @@ public class ThreadServiceImpl implements ThreadService {
                 if (!followersRepository.isFollowing(thread.getAuthor().getId(), currentUser.getId()))
                     throw new BadRequestException(ErrorMessageConstants.THREAD_NOT_AVAILABLE);
 
-                yield threadMapper.toResponse(thread);
+                yield threadMapper.toResponse(getCommentsForEachThread(List.of(thread), true).getFirst());
             }
-            case PUBLIC -> threadMapper.toResponse(thread);
+            case PUBLIC -> threadMapper.toResponse(getCommentsForEachThread(List.of(thread), true).getFirst());
         };
     }
 
@@ -215,7 +249,7 @@ public class ThreadServiceImpl implements ThreadService {
             );
 
         return new DataWithPage<>(
-            page.stream().map(threadMapper::toResponse).toList(),
+            getCommentsForEachThread(page.getContent(), true).stream().map(threadMapper::toResponseWithoutComments).toList(),
             PageUtils.makePageInfo(page)
         );
     }
@@ -235,7 +269,7 @@ public class ThreadServiceImpl implements ThreadService {
             pageable
         );
         return new DataWithPage<>(
-            page.stream().map(threadMapper::toResponse).toList(),
+            getCommentsForEachThread(page.getContent(), true).stream().map(threadMapper::toResponseWithoutComments).toList(),
             PageUtils.makePageInfo(page)
         );
     }
@@ -255,7 +289,7 @@ public class ThreadServiceImpl implements ThreadService {
         );
 
         return new DataWithPage<>(
-            page.stream().map(threadMapper::toResponse).toList(),
+            getCommentsForEachThread(page.getContent(), true).stream().map(threadMapper::toResponseWithoutComments).toList(),
             PageUtils.makePageInfo(page)
         );
     }
@@ -299,7 +333,7 @@ public class ThreadServiceImpl implements ThreadService {
         }).toList();
 
         return new DataWithPage<>(
-            contents.stream().map(threadMapper::toResponse).toList(),
+            getCommentsForEachThread(contents, true).stream().map(threadMapper::toResponseWithoutComments).toList(),
             PageUtils.makePageInfo(page)
         );
     }
@@ -366,11 +400,12 @@ public class ThreadServiceImpl implements ThreadService {
             throw new BadRequestException(ErrorMessageConstants.ALREADY_SHARED);
         else
             sharer = new ThreadSharer(thread, currentUser);
-        threadSharersRepository.save(sharer);
+        sharer = threadSharersRepository.save(sharer);
 
         // Update shared_num in the thread
         thread.setSharedNum(thread.getSharedNum() + 1);
-        threadsRepository.save(thread);
+        thread = threadsRepository.save(thread);
+        thread.setSharers(List.of(sharer));
 
         // Send notification to all subscribers
         notificationService.sendNotification(null, null, NotificationType.SHARE, thread);
@@ -418,5 +453,20 @@ public class ThreadServiceImpl implements ThreadService {
                 }
             }
         return thread;
+    }
+
+    private List<Thread> getCommentsForEachThread(List<Thread> threads, boolean isRecursive) {
+        var result = new ArrayList<>(threads);
+        var allComments = isRecursive
+            ? getCommentsForEachThread(threadsFetchRepository.findAllComments(threads.stream().map(Thread::getId).toList()), false)
+            : threadsFetchRepository.findAllComments(threads.stream().map(Thread::getId).toList());
+
+        for (Thread thread : result) {
+            thread.setComments(allComments.stream().filter(
+                    e -> e.getParentThread().getId().equals(thread.getId())
+                ).toList()
+            );
+        }
+        return result;
     }
 }

@@ -62,6 +62,20 @@ public class CloudinaryServiceImpl implements CloudinaryService {
     }
 
     @Override
+    public void deleteFiles(List<Long> ids) {
+        try {
+            List<File> files = filesRepository.findAllById(ids);
+            for (File file : files) {
+                String publicId = extractPublicIdFromUrl(file.getUrl());
+                cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+            }
+            filesRepository.deleteAll(files);
+        } catch (Exception e) {
+            throw new BadRequestException(ErrorMessageConstants.DELETE_FILE_FAILED);
+        }
+    }
+
+    @Override
     public void deleteFileByUrl(String url) {
         try {
             String publicId = extractPublicIdFromUrl(url);

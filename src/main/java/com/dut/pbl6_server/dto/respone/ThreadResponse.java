@@ -25,6 +25,7 @@ public class ThreadResponse extends AbstractDTO {
     private String content;
     private int reactionNum;
     private int sharedNum;
+    private int commentNum;
     private boolean isPin;
     private ThreadStatus status;
     private Visibility visibility;

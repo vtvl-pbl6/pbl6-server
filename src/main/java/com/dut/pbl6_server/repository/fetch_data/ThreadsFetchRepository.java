@@ -10,7 +10,20 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface ThreadsFetchRepository extends FetchRepository<Thread, Long, FetchBaseRepository<Thread>> {
-    Page<Thread> findAllByAuthorIdInAndVisibilityInAndStatusNotIn(List<Long> authorIds, List<Visibility> visibilities, List<ThreadStatus> statuses, Pageable pageable);
+    Page<Thread> findAllByAuthorIdInAndVisibilityInAndStatusNotIn(
+        List<Long> authorIds,
+        List<Visibility> visibilities,
+        List<ThreadStatus> statuses,
+        Pageable pageable
+    );
 
-    Page<Thread> findThreadsByIdInAndVisibilityInAndStatusNotIn(List<Long> threadIds, List<Visibility> visibilities, List<ThreadStatus> statuses, Pageable pageable);
+    Page<Thread> findThreadsByIdInAndVisibilityInAndStatusNotIn(
+        List<Long> threadIds,
+        List<Visibility> visibilities,
+        List<ThreadStatus> statuses, Pageable pageable
+    );
+
+    List<Thread> findAllComments(Long parentId);
+
+    List<Thread> findAllComments(List<Long> parentIds);
 }

@@ -177,6 +177,9 @@ already_unshared:
 thread_update_request_invalid:
   code: ERR_THR0113
   message: Yêu cầu cập nhật bài viết không hợp lệ!
+cannot_change_visibility_of_comment:
+  code: ERR_THR0114
+  message: Bạn không thể thay đổi trạng thái hiển thị của bình luận!
 
 # Repost
 repost_not_found:

@@ -177,6 +177,9 @@ already_unshared:
 thread_update_request_invalid:
   code: ERR_THR0113
   message: Update thread must be updated the content or files!
+cannot_change_visibility_of_comment:
+  code: ERR_THR0114
+  message: You can not change the visibility of a comment!
 
 # Repost
 repost_not_found:

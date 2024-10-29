@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
+@Component("ThreadsFetchBaseRepositoryV2")
 @RequiredArgsConstructor
-public class ThreadsFetchBaseRepository implements FetchBaseRepository<Thread> {
+public class ThreadsFetchBaseRepositoryV2 implements FetchBaseRepository<Thread> {
     @PersistenceContext
     private EntityManager em;
 
@@ -37,9 +37,6 @@ public class ThreadsFetchBaseRepository implements FetchBaseRepository<Thread> {
         return em;
     }
 
-    /*
-     * NOTE: With data in 'parentThread' relation and 'comments' relation, only fetch data in 1st level
-     */
     @Override
     public Object fetchAllDataImplementation(List<WhereElement> whereElements, Sort sort, Pageable pageable) {
         // Base query with 'sharers' relation
@@ -82,21 +79,7 @@ public class ThreadsFetchBaseRepository implements FetchBaseRepository<Thread> {
             )
         ).toList();
 
-        // Fetch 'comments' relation (1st level)
-        var comments = em.createQuery(
-                """
-                    SELECT t
-                    FROM Thread t
-                    LEFT JOIN FETCH t.author ta
-                    LEFT JOIN FETCH ta.avatarFile
-                    LEFT JOIN FETCH t.files
-                    WHERE t.parentThread IN :values
-                    """,
-                Thread.class)
-            .setParameter("values", values)
-            .getResultList();
-
-        // Fetch 'react users' relation for threads and comments
+        // Fetch 'react users' relation for threads
         var reactUsers = em.createQuery(
                 """
                     SELECT tru
@@ -104,34 +87,17 @@ public class ThreadsFetchBaseRepository implements FetchBaseRepository<Thread> {
                     LEFT JOIN FETCH tru.user
                     LEFT JOIN FETCH tru.user.avatarFile
                     WHERE
-                        (tru.thread IN :threads OR tru.thread IN :comments)
+                        tru.thread IN :threads
                         AND tru.deletedAt IS NULL
                     """,
                 ThreadReactUser.class)
             .setParameter("threads", values)
-            .setParameter("comments", comments)
             .getResultList();
-
-        var finalComments = comments.stream().peek( // Set 'react users' for each comment
-            v -> v.setReactUsers(
-                reactUsers.stream().filter(
-                    tmp -> tmp.getThread().getId().equals(v.getId())
-                ).toList()
-            )
-        ).toList();
 
         values = values.stream().peek( // Set 'react users' for each thread
             v -> v.setReactUsers(
                 reactUsers.stream().filter(
                     tmp -> tmp.getThread().getId().equals(v.getId())
-                ).toList()
-            )
-        ).toList();
-
-        values = values.stream().peek( // Set 'comments' for each thread
-            v -> v.setComments(
-                finalComments.stream().filter(
-                    tmp -> tmp.getParentThread().getId().equals(v.getId())
                 ).toList()
             )
         ).toList();
