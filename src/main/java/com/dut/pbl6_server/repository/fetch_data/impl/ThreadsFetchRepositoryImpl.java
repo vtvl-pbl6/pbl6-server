@@ -52,6 +52,7 @@ public class ThreadsFetchRepositoryImpl implements ThreadsFetchRepository {
             whereElements.add(WhereElement.builder().key("status").value(statuses).operator(WhereOperator.NOT_IN).build());
 
         whereElements.add(WhereElement.builder().key("deletedAt").operator(WhereOperator.IS_NULL).build());
+        whereElements.add(WhereElement.builder().key("parentThread").operator(WhereOperator.IS_NULL).build());
         return fetchBaseRepository.fetchAllDataWithPagination(CommonUtils.List.isEmptyOrNull(whereElements) ? null : whereElements, pageable);
     }
 
@@ -73,6 +74,7 @@ public class ThreadsFetchRepositoryImpl implements ThreadsFetchRepository {
             whereElements.add(WhereElement.builder().key("status").value(statuses).operator(WhereOperator.NOT_IN).build());
 
         whereElements.add(WhereElement.builder().key("deletedAt").operator(WhereOperator.IS_NULL).build());
+        whereElements.add(WhereElement.builder().key("parentThread").operator(WhereOperator.IS_NULL).build());
         return fetchBaseRepository.fetchAllDataWithPagination(whereElements, pageable);
     }
 

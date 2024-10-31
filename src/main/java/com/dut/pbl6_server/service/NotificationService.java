@@ -21,9 +21,9 @@ public interface NotificationService {
      *                 It will be used to <i><b>get content</b></i> of notification, and it also indicates whether we need to <i><b>save the notification to the database or not</b></i>.
      * @param object   object of notification
      * @return DTO response of notification
-     * @see com.dut.pbl6_server.common.enums.WebSocketDestination#getDestination(NotificationType, AccountRole, AccountRole)
+     * @see com.dut.pbl6_server.common.enums.WebSocketDestination#getDestination(NotificationType, AccountRole, boolean, boolean)
      */
-    NotificationResponse sendNotification(Account sender, Account receiver, NotificationType type, AbstractEntity object);
+    NotificationResponse sendNotification(Account sender, Account receiver, NotificationType type, AbstractEntity object, boolean publicAdminFlag, boolean publicUserFlag);
 
     DataWithPage<NotificationResponse> getNotifications(Account account, Pageable pageable);
 }

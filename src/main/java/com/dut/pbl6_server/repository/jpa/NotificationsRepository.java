@@ -21,12 +21,8 @@ public interface NotificationsRepository extends JpaRepository<Notification, Lon
             LEFT JOIN FETCH nr.avatarFile
             WHERE
                 n.receiver.id = :receiverId
-                OR (
-                    n.receiver IS NULL AND (
-                       (:receiverRole = 'USER' AND ns.role = 'ADMIN') OR
-                       (:receiverRole = 'ADMIN' AND ns.role = 'USER')
-                    )
-                )
+                OR (n.receiver IS NULL AND :receiverRole = 'USER' AND n.publicUserFlag = TRUE)
+                OR (n.receiver IS NULL AND :receiverRole = 'ADMIN' AND n.publicAdminFlag = TRUE)
         """)
     Page<Notification> getNotificationsByReceiverId(Long receiverId, String receiverRole, Pageable pageable);
 }

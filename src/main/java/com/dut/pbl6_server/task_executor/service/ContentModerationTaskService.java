@@ -79,7 +79,7 @@ public class ContentModerationTaskService implements BaseTaskService<ContentMode
                                 threadsRepository.save(thread);
 
                                 // Send notification to client (via WebSocket)
-                                notificationService.sendNotification(null, thread.getAuthor(), NotificationType.CREATE_THREAD_DONE, thread);
+                                notificationService.sendNotification(null, thread.getAuthor(), NotificationType.CREATE_THREAD_DONE, thread, false, false);
                             }
                         } catch (Exception e) {
                             log.error(e.getMessage());

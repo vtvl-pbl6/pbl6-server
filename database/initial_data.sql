@@ -21,7 +21,7 @@ create type thread_status as enum ('CREATING', 'CREATE_DONE', 'PENDING');
 create table if not exists files
 (
     id          bigserial
-        primary key,
+    primary key,
     name        varchar(400)                        not null,
     url         varchar(400)                        not null,
     size        integer                             not null,
@@ -36,22 +36,22 @@ create table if not exists files
 create table if not exists accounts
 (
     id           bigserial
-        primary key,
+    primary key,
     email        varchar(255)                                    not null
-        unique,
+    unique,
     password     varchar(255)                                    not null,
     first_name   varchar(255)                                    not null,
     last_name    varchar(255)                                    not null,
     status       account_status default 'ACTIVE'::account_status not null,
     role         account_role                                    not null,
     display_name varchar(255)                                    not null
-        unique,
+    unique,
     birthday     timestamp,
     gender       account_gender,
     bio          text,
     avatar       bigint
-        unique
-        references files,
+    unique
+    references files,
     visibility   visibility     default 'PUBLIC'::visibility     not null,
     language     varchar(10)    default 'vi'::character varying  not null,
     created_at   timestamp      default CURRENT_TIMESTAMP        not null,
@@ -63,10 +63,10 @@ create table if not exists accounts
 create table if not exists refresh_tokens
 (
     id         bigserial
-        primary key,
+    primary key,
     account_id bigint                              not null
-        references accounts(id) on delete cascade ,
-    token      text                        not null,
+    references accounts (id) on delete cascade,
+    token      text                                not null,
     created_at timestamp default CURRENT_TIMESTAMP not null,
     updated_at timestamp,
     deleted_at timestamp
@@ -76,11 +76,11 @@ create table if not exists refresh_tokens
 create table if not exists followers
 (
     id          bigserial
-        primary key,
+    primary key,
     user_id     bigint                              not null
-        references accounts(id) on delete cascade,
+    references accounts (id) on delete cascade,
     follower_id bigint                              not null
-        references accounts(id) on delete cascade,
+    references accounts (id) on delete cascade,
     created_at  timestamp default CURRENT_TIMESTAMP not null,
     updated_at  timestamp,
     deleted_at  timestamp
@@ -89,30 +89,32 @@ create table if not exists followers
 -- Notification table
 create table if not exists notifications
 (
-    id          bigserial
-        primary key,
-    sender_id   bigint
-        references accounts(id) on delete set null,
-    receiver_id bigint
-        references accounts(id) on delete set null,
-    object_id   bigint,
-    type        varchar(255)                        not null,
-    content     varchar(1000)                       not null,
-    is_read     boolean   default false             not null,
-    created_at  timestamp default CURRENT_TIMESTAMP not null,
-    updated_at  timestamp,
-    deleted_at  timestamp
+    id                bigserial
+    primary key,
+    sender_id         bigint
+    references accounts (id) on delete set null,
+    receiver_id       bigint
+    references accounts (id) on delete set null,
+    public_admin_flag boolean   default false,
+    public_user_flag  boolean   default false,
+    object_id         bigint,
+    type              varchar(255)                        not null,
+    content           varchar(1000)                       not null,
+    is_read           boolean   default false             not null,
+    created_at        timestamp default CURRENT_TIMESTAMP not null,
+    updated_at        timestamp,
+    deleted_at        timestamp
 );
 
 -- Thread table
 create table if not exists threads
 (
     id               bigserial
-        primary key,
+    primary key,
     author_id        bigint                                          not null
-        references accounts(id) on delete cascade,
+    references accounts (id) on delete cascade,
     parent_thread_id bigint
-        references threads(id) on delete cascade,
+    references threads (id) on delete cascade,
     content          text,
     hos_result       jsonb,
     reaction_num     integer       default 0                         not null,
@@ -129,11 +131,11 @@ create table if not exists threads
 create table if not exists thread_sharers
 (
     id         bigserial
-        primary key,
+    primary key,
     thread_id  bigint                              not null
-        references threads(id) on delete cascade,
+    references threads (id) on delete cascade,
     user_id    bigint                              not null
-        references accounts(id) on delete cascade,
+    references accounts (id) on delete cascade,
     created_at timestamp default CURRENT_TIMESTAMP not null,
     updated_at timestamp,
     deleted_at timestamp
@@ -145,9 +147,9 @@ create table if not exists thread_react_users
     id         bigserial
     primary key,
     thread_id  bigint                              not null
-    references threads(id) on delete cascade,
+    references threads (id) on delete cascade,
     user_id    bigint                              not null
-    references accounts(id) on delete cascade,
+    references accounts (id) on delete cascade,
     created_at timestamp default CURRENT_TIMESTAMP not null,
     updated_at timestamp,
     deleted_at timestamp
@@ -157,12 +159,12 @@ create table if not exists thread_react_users
 create table if not exists thread_files
 (
     id         bigserial
-        primary key,
+    primary key,
     thread_id  bigint                              not null
-        references threads(id) on delete cascade,
+    references threads (id) on delete cascade,
     file_id    bigint                              not null
-        unique
-        references files,
+    unique
+    references files,
     created_at timestamp default CURRENT_TIMESTAMP not null,
     updated_at timestamp,
     deleted_at timestamp

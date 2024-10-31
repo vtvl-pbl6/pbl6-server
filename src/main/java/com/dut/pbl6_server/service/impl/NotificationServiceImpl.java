@@ -37,7 +37,14 @@ public class NotificationServiceImpl implements NotificationService {
     private final WebSocketUtils webSocketUtils;
 
     @Override
-    public NotificationResponse sendNotification(Account sender, Account receiver, NotificationType type, AbstractEntity object) {
+    public NotificationResponse sendNotification(
+        Account sender,
+        Account receiver,
+        NotificationType type,
+        AbstractEntity object,
+        boolean publicAdminFlag,
+        boolean publicUserFlag
+    ) {
         // Check if sender and receiver are the same
         if (sender != null && receiver != null && sender.getEmail().equals(receiver.getEmail())) {
             throw new BadRequestException(ErrorMessageConstants.NOTIFICATION_CANT_SEND_TO_YOURSELF);
@@ -57,6 +64,8 @@ public class NotificationServiceImpl implements NotificationService {
             .sender(sender)
             .receiver(receiver)
             .content(savedContent)
+            .publicAdminFlag(publicAdminFlag)
+            .publicUserFlag(publicUserFlag)
             .objectId(object != null ? object.getId() : null)
             .type(type.name())
             .build();
@@ -71,12 +80,12 @@ public class NotificationServiceImpl implements NotificationService {
             if (receiver != null)
                 webSocketUtils.sendToSubscriber(
                     receiver.getEmail(),
-                    WebSocketDestination.getDestination(type, receiver.getRole(), sender != null ? sender.getRole() : null),
+                    WebSocketDestination.getDestination(type, receiver.getRole(), publicAdminFlag, publicUserFlag),
                     response
                 );
             else
                 webSocketUtils.sendToAllSubscribers(
-                    WebSocketDestination.getDestination(type, null, sender != null ? sender.getRole() : null),
+                    WebSocketDestination.getDestination(type, null, publicAdminFlag, publicUserFlag),
                     response
                 );
         } catch (Exception e) {
@@ -140,17 +149,11 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             return switch (type) {
                 case FOLLOW -> I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName());
-                case REQUEST_THREAD_MODERATION -> {
+                case REQUEST_THREAD_MODERATION, COMMENT -> {
                     var thread = (Thread) object;
                     yield CommonUtils.String.isNotEmptyOrNull(thread.getContent())
                         ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName(), ": " + thread.getContent())
                         : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName(), "");
-                }
-                case COMMENT -> {
-                    var thread = (Thread) object;
-                    yield CommonUtils.String.isNotEmptyOrNull(thread.getContent())
-                        ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, thread.getAuthor().getDisplayName(), ": " + thread.getContent())
-                        : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, thread.getAuthor().getDisplayName(), "");
                 }
                 case SHARE -> {
                     var thread = (Thread) object;

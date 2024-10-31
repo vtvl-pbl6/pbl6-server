@@ -32,4 +32,12 @@ public class Notification extends AbstractEntity {
     @Column(nullable = false)
     @Builder.Default
     private boolean isRead = false;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean publicAdminFlag = false;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean publicUserFlag = false;
 }

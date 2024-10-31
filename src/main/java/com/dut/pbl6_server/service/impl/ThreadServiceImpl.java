@@ -54,13 +54,10 @@ public class ThreadServiceImpl implements ThreadService {
         Long notificationId = null;
         try {
             // Check parent thread's visibility and status
-            if (parentThread != null) {
+            if (parentThread != null && !parentThread.getAuthor().getId().equals(currentUser.getId())) {
                 switch (parentThread.getVisibility()) {
-                    case PRIVATE -> throw new BadRequestException(
-                        currentUser.getId().equals(parentThread.getAuthor().getId())
-                            ? ErrorMessageConstants.THREAD_PARENT_NOT_AVAILABLE
-                            : ErrorMessageConstants.PRIVATE_THREAD_CAN_NOT_HAVE_COMMENT
-                    );
+                    case PRIVATE ->
+                        throw new BadRequestException(ErrorMessageConstants.PRIVATE_THREAD_CAN_NOT_HAVE_COMMENT);
                     case FRIEND_ONLY -> {
                         // if the current user is not following the author of the parent thread then the parent thread is not available
                         if (!followersRepository.isFollowing(parentThread.getAuthor().getId(), currentUser.getId()))
@@ -104,7 +101,7 @@ public class ThreadServiceImpl implements ThreadService {
 
             // Send comment notification to all subscribers
             if (parentThread != null)
-                notificationId = notificationService.sendNotification(null, null, NotificationType.COMMENT, createdThread).getId();
+                notificationId = notificationService.sendNotification(currentUser, null, NotificationType.COMMENT, parentThread, false, true).getId();
 
             return threadMapper.toResponseWithoutComments(createdThread);
         } catch (Exception ex) {
@@ -167,7 +164,7 @@ public class ThreadServiceImpl implements ThreadService {
                 contentModerationTaskService.moderate(needUpdateThread);
 
             // Send notification to public
-            notificationService.sendNotification(null, null, NotificationType.EDIT_THREAD, needUpdateThread);
+            notificationService.sendNotification(currentUser, null, NotificationType.EDIT_THREAD, needUpdateThread, false, true);
 
             return threadMapper.toResponseWithoutComments(needUpdateThread);
         } catch (Exception e) {
@@ -361,7 +358,7 @@ public class ThreadServiceImpl implements ThreadService {
         threadsRepository.save(thread);
 
         // Send notification to all subscribers
-        notificationService.sendNotification(null, null, NotificationType.LIKE, thread);
+        notificationService.sendNotification(currentUser, null, NotificationType.LIKE, thread, false, true);
     }
 
     @Override
@@ -382,7 +379,7 @@ public class ThreadServiceImpl implements ThreadService {
         threadsRepository.save(thread);
 
         // Send notification to all subscribers
-        notificationService.sendNotification(null, null, NotificationType.UNLIKE, thread);
+        notificationService.sendNotification(currentUser, null, NotificationType.UNLIKE, thread, false, true);
     }
 
     @Override
@@ -408,7 +405,7 @@ public class ThreadServiceImpl implements ThreadService {
         thread.setSharers(List.of(sharer));
 
         // Send notification to all subscribers
-        notificationService.sendNotification(null, null, NotificationType.SHARE, thread);
+        notificationService.sendNotification(currentUser, null, NotificationType.SHARE, thread, false, true);
     }
 
     @Override
@@ -432,7 +429,7 @@ public class ThreadServiceImpl implements ThreadService {
         threadsRepository.save(thread);
 
         // Send notification to all subscribers
-        notificationService.sendNotification(null, null, NotificationType.UNSHARED, thread);
+        notificationService.sendNotification(currentUser, null, NotificationType.UNSHARED, thread, false, true);
     }
 
     private Thread checkThreadVisibility(Account currentUser, Long threadId) {

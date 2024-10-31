@@ -103,7 +103,7 @@ public class AccountServiceImpl implements AccountService {
         followersRepository.save(follower);
 
         // send notification (via stomp websocket)
-        notificationService.sendNotification(currentUser, user, NotificationType.FOLLOW, null);
+        notificationService.sendNotification(currentUser, user, NotificationType.FOLLOW, null, false, false);
     }
 
     @Override
@@ -126,6 +126,6 @@ public class AccountServiceImpl implements AccountService {
         followersRepository.save(follower);
 
         // send notification (via stomp websocket)
-        notificationService.sendNotification(currentUser, user, NotificationType.UNFOLLOW, null);
+        notificationService.sendNotification(currentUser, user, NotificationType.UNFOLLOW, null, false, false);
     }
 }
