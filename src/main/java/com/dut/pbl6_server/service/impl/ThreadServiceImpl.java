@@ -101,7 +101,7 @@ public class ThreadServiceImpl implements ThreadService {
 
             // Send comment notification to all subscribers
             if (parentThread != null)
-                notificationId = notificationService.sendNotification(currentUser, null, NotificationType.COMMENT, parentThread, false, true).getId();
+                notificationId = notificationService.sendNotification(currentUser, null, NotificationType.COMMENT, createdThread, false, true).getId();
 
             return threadMapper.toResponseWithoutComments(createdThread);
         } catch (Exception ex) {
