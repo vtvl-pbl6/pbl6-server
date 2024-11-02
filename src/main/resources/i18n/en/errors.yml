@@ -122,6 +122,15 @@ cannot_unfollow_admin:
 already_unfollowed:
   code: ERR_ACC0115
   message: You have already unfollowed this account!
+cannot_action_admin_account:
+  code: ERR_ACC0116
+  message: You can not perform this action on admin account!
+already_active:
+  code: ERR_ACC0117
+  message: Account is already active!
+already_inactive:
+  code: ERR_ACC0118
+  message: Account is already inactive!
 
 # File
 upload_file_failed:

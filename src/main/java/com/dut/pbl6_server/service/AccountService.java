@@ -5,6 +5,8 @@ import com.dut.pbl6_server.dto.respone.AccountResponse;
 import com.dut.pbl6_server.entity.Account;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface AccountService {
     AccountResponse getAccountInfo(Account currentUser);
 
@@ -17,4 +19,12 @@ public interface AccountService {
     void followUser(Account currentUser, Long userId);
 
     void unfollowUser(Account currentUser, Long userId);
+
+    List<AccountResponse> getAccounts();
+
+    AccountResponse getAccountInfoByAdmin(Long userId);
+
+    AccountResponse deactivateAccount(Account admin, Long userId);
+
+    AccountResponse activateAccount(Account admin, Long userId);
 }

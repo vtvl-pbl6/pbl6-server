@@ -36,7 +36,9 @@ public enum WebSocketDestination {
                  COMMENT,
                  REQUEST_THREAD_MODERATION,
                  REQUEST_THREAD_MODERATION_FAILED,
-                 REQUEST_THREAD_MODERATION_SUCCESS -> switch (receiverRole) {
+                 REQUEST_THREAD_MODERATION_SUCCESS,
+                 ACTIVATE_ACCOUNT,
+                 DEACTIVATE_ACCOUNT -> switch (receiverRole) {
                 case USER -> PRIVATE_USER_NOTIFICATION;
                 case ADMIN -> PRIVATE_ADMIN_NOTIFICATION;
             };

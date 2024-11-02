@@ -161,6 +161,8 @@ public class NotificationServiceImpl implements NotificationService {
                         ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, thread.getSharers().getFirst().getUser().getDisplayName(), ": " + thread.getContent())
                         : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, thread.getSharers().getFirst().getUser().getDisplayName(), "");
                 }
+                case ACTIVATE_ACCOUNT, DEACTIVATE_ACCOUNT ->
+                    I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP);
                 case REQUEST_THREAD_MODERATION_FAILED, REQUEST_THREAD_MODERATION_SUCCESS -> {
                     var thread = (Thread) object;
                     yield CommonUtils.String.isNotEmptyOrNull(thread.getContent())

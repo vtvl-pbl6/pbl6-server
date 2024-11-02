@@ -57,6 +57,9 @@ public final class ErrorMessageConstants {
     public static final String CANNOT_UNFOLLOW_ADMIN = "cannot_unfollow_admin";
     public static final String ALREADY_UNFOLLOWED = "already_unfollowed";
     public static final String NEW_PASSWORD_MUST_BE_DIFFERENT = "new_password_must_be_different";
+    public static final String CANNOT_ACTION_ADMIN_ACCOUNT = "cannot_action_admin_account";
+    public static final String ACCOUNT_IS_ALREADY_ACTIVE = "already_active";
+    public static final String ACCOUNT_IS_ALREADY_INACTIVE = "already_inactive";
 
     /**
      * Thread

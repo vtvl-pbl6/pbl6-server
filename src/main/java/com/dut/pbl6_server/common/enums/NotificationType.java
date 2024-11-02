@@ -13,6 +13,8 @@ public enum NotificationType {
     REQUEST_THREAD_MODERATION_FAILED("request_thread_moderation_failed", true),
     REQUEST_THREAD_MODERATION_SUCCESS("request_thread_moderation_success", true),
     SHARE("share", true),
+    ACTIVATE_ACCOUNT("activate_account", true),
+    DEACTIVATE_ACCOUNT("deactivate_account", true),
     // For real-time only,
     UNFOLLOW("unfollow", false),
     CREATE_THREAD_DONE("create_thread_done", false),

@@ -10,6 +10,7 @@ import com.dut.pbl6_server.dto.respone.AccountResponse;
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.Follower;
 import com.dut.pbl6_server.entity.enums.AccountRole;
+import com.dut.pbl6_server.entity.enums.AccountStatus;
 import com.dut.pbl6_server.mapper.AccountMapper;
 import com.dut.pbl6_server.repository.fetch_data.AccountsFetchRepository;
 import com.dut.pbl6_server.repository.jpa.AccountsRepository;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service("AccountService")
@@ -127,5 +129,52 @@ public class AccountServiceImpl implements AccountService {
 
         // send notification (via stomp websocket)
         notificationService.sendNotification(currentUser, user, NotificationType.UNFOLLOW, null, false, false);
+    }
+
+    @Override
+    public List<AccountResponse> getAccounts() {
+        return accountsFetchRepository.getUserAccounts().stream().map(accountMapper::toResponse).toList();
+    }
+
+    @Override
+    public AccountResponse getAccountInfoByAdmin(Long userId) {
+        return accountMapper.toResponse(
+            accountsFetchRepository.getByIdAlthoughDeleted(userId)
+                .orElseThrow(() -> new BadRequestException(ErrorMessageConstants.ACCOUNT_NOT_FOUND))
+        );
+    }
+
+    @Override
+    public AccountResponse deactivateAccount(Account admin, Long userId) {
+        var account = accountsFetchRepository.getByIdAlthoughDeleted(userId)
+            .orElseThrow(() -> new BadRequestException(ErrorMessageConstants.ACCOUNT_NOT_FOUND));
+
+        // Check if user is admin
+        if (account.getRole() == AccountRole.ADMIN)
+            throw new BadRequestException(ErrorMessageConstants.CANNOT_ACTION_ADMIN_ACCOUNT);
+
+        // Check if user is already deactivated
+        if (account.getStatus() == AccountStatus.INACTIVE)
+            throw new BadRequestException(ErrorMessageConstants.ACCOUNT_IS_ALREADY_INACTIVE);
+        account.setStatus(AccountStatus.INACTIVE);
+        notificationService.sendNotification(admin, account, NotificationType.DEACTIVATE_ACCOUNT, account, false, false);
+        return accountMapper.toResponse(accountsRepository.save(account));
+    }
+
+    @Override
+    public AccountResponse activateAccount(Account admin, Long userId) {
+        var account = accountsFetchRepository.getByIdAlthoughDeleted(userId)
+            .orElseThrow(() -> new BadRequestException(ErrorMessageConstants.ACCOUNT_NOT_FOUND));
+
+        // Check if user is admin
+        if (account.getRole() == AccountRole.ADMIN)
+            throw new BadRequestException(ErrorMessageConstants.CANNOT_ACTION_ADMIN_ACCOUNT);
+
+        // Check if user is already deactivated
+        if (account.getStatus() == AccountStatus.ACTIVE)
+            throw new BadRequestException(ErrorMessageConstants.ACCOUNT_IS_ALREADY_ACTIVE);
+        account.setStatus(AccountStatus.ACTIVE);
+        notificationService.sendNotification(admin, account, NotificationType.ACTIVATE_ACCOUNT, account, false, false);
+        return accountMapper.toResponse(accountsRepository.save(account));
     }
 }

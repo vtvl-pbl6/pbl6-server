@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -38,5 +39,21 @@ public class AccountsFetchRepositoryImpl implements AccountsFetchRepository {
             ),
             pageable
         );
+    }
+
+    @Override
+    public List<Account> getUserAccounts() {
+        return fetchBaseRepository.fetchAllDataWithoutPagination(
+            List.of(new WhereElement("role", AccountRole.USER, WhereOperator.EQUAL)),
+            null
+        );
+    }
+
+    @Override
+    public Optional<Account> getByIdAlthoughDeleted(Long id) {
+        return fetchBaseRepository.fetchAllDataWithoutPagination(
+            List.of(new WhereElement("id", id, WhereOperator.EQUAL))
+            , null
+        ).stream().findFirst();
     }
 }

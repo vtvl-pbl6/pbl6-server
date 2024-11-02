@@ -1,7 +1,6 @@
 package com.dut.pbl6_server.controller;
 
 import com.dut.pbl6_server.annotation.auth.CurrentAccount;
-import com.dut.pbl6_server.annotation.auth.PreAuthorizeAll;
 import com.dut.pbl6_server.annotation.auth.PreAuthorizeUser;
 import com.dut.pbl6_server.dto.request.ChangePasswordRequest;
 import com.dut.pbl6_server.dto.request.LoginRequest;
@@ -33,7 +32,7 @@ public class AuthController {
     }
 
     @PostMapping("/revoke-token")
-    @PreAuthorizeAll
+    @PreAuthorizeUser
     public Object revokeToken(@CurrentAccount Account account) {
         authService.revokeToken(account, false);
         return null;

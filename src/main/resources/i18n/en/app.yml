@@ -6,3 +6,5 @@ notification:
   request_thread_moderation_failed: "<i18n>Your post moderation has failed</i18n>{0}"  # {0} is the post title or description
   request_thread_moderation_success: "<i18n>Your post has been successfully moderated</i18n>{0}"  # {0} is the post title or description
   share: "<strong>{0}</strong> <i18n>shared your post</i18n>{1}"  # {0} is the display name of the sharer, {1} is the post
+  activate_account: "<i18n>Your account has been activated by the administrator</i18n>"
+  deactivate_account: "<i18n>Your account has been deactivated by the administrator</i18n>"

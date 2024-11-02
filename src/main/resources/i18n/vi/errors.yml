@@ -122,6 +122,15 @@ account_is_not_active:
 account_id_is_required:
   code: ERR_ACC0108
   message: Yêu cầu phải có id tài khoản!
+cannot_action_admin_account:
+  code: ERR_ACC0116
+  message: Bạn không thể thực hiện hành động này với tài khoản quản trị!
+already_active:
+  code: ERR_ACC0117
+  message: Tài khoản này đã được kích hoạt!
+already_inactive:
+  code: ERR_ACC0118
+  message: Tài khoản này đã bị vô hiệu hóa!
 
 # File
 upload_file_failed:
