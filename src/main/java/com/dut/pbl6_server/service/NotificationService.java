@@ -3,6 +3,7 @@ package com.dut.pbl6_server.service;
 import com.dut.pbl6_server.common.enums.NotificationType;
 import com.dut.pbl6_server.common.model.AbstractEntity;
 import com.dut.pbl6_server.common.model.DataWithPage;
+import com.dut.pbl6_server.dto.request.NotificationRequest;
 import com.dut.pbl6_server.dto.respone.NotificationResponse;
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.enums.AccountRole;
@@ -25,5 +26,13 @@ public interface NotificationService {
      */
     NotificationResponse sendNotification(Account sender, Account receiver, NotificationType type, AbstractEntity object, boolean publicAdminFlag, boolean publicUserFlag);
 
+    NotificationResponse createNotification(Account admin, NotificationRequest request, boolean publicAdminFlag, boolean publicUserFlag);
+
+    NotificationResponse updateNotification(Long notificationId, String content);
+
+    void deleteNotification(Long notificationId);
+
     DataWithPage<NotificationResponse> getNotifications(Account account, Pageable pageable);
+
+    DataWithPage<NotificationResponse> getCreatedNotifications(Pageable pageable);
 }

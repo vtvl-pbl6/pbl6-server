@@ -15,6 +15,7 @@ public enum NotificationType {
     SHARE("share", true),
     ACTIVATE_ACCOUNT("activate_account", true),
     DEACTIVATE_ACCOUNT("deactivate_account", true),
+    CUSTOM("custom", true),
     // For real-time only,
     UNFOLLOW("unfollow", false),
     CREATE_THREAD_DONE("create_thread_done", false),

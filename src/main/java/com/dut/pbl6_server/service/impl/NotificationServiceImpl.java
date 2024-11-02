@@ -13,11 +13,13 @@ import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.common.util.I18nUtils;
 import com.dut.pbl6_server.common.util.PageUtils;
 import com.dut.pbl6_server.config.websocket.WebSocketUtils;
+import com.dut.pbl6_server.dto.request.NotificationRequest;
 import com.dut.pbl6_server.dto.respone.NotificationResponse;
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.Notification;
 import com.dut.pbl6_server.entity.Thread;
 import com.dut.pbl6_server.mapper.NotificationMapper;
+import com.dut.pbl6_server.repository.jpa.AccountsRepository;
 import com.dut.pbl6_server.repository.jpa.NotificationsRepository;
 import com.dut.pbl6_server.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationsRepository notificationsRepository;
     private final NotificationMapper notificationMapper;
     private final WebSocketUtils webSocketUtils;
+    private final AccountsRepository accountsRepository;
 
     @Override
     public NotificationResponse sendNotification(
@@ -96,6 +99,61 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public NotificationResponse createNotification(Account admin, NotificationRequest request, boolean publicAdminFlag, boolean publicUserFlag) {
+        var receiver = accountsRepository.findById(request.getReceiverId()).orElseThrow(() -> new BadRequestException(ErrorMessageConstants.ACCOUNT_NOT_FOUND));
+
+        // Check if sender and receiver are the same
+        if (admin.getId().equals(receiver.getId()))
+            throw new BadRequestException(ErrorMessageConstants.NOTIFICATION_CANT_SEND_TO_YOURSELF);
+
+        var notification = Notification.builder()
+            .sender(admin)
+            .receiver(receiver)
+            .content(request.getContent())
+            .customContent(request.getContent())
+            .publicAdminFlag(publicAdminFlag)
+            .publicUserFlag(publicUserFlag)
+            .type(NotificationType.CUSTOM.name())
+            .build();
+        notification = notificationsRepository.save(notification);
+
+        // Send notification (via WebSocket) to specific subscriber
+        try {
+            webSocketUtils.sendToSubscriber(
+                receiver.getEmail(),
+                WebSocketDestination.getDestination(NotificationType.CUSTOM, receiver.getRole(), publicAdminFlag, publicUserFlag),
+                notificationMapper.toResponse(notification));
+        } catch (Exception e) {
+            webSocketUtils.sendError(receiver.getEmail(), e);
+        }
+
+        return notificationMapper.toResponse(notification);
+    }
+
+    @Override
+    public NotificationResponse updateNotification(Long notificationId, String content) {
+        var notification = notificationsRepository.findById(notificationId).orElseThrow(() -> new BadRequestException(ErrorMessageConstants.NOTIFICATION_NOT_FOUND));
+
+        if (notification.getCustomContent() == null || CommonUtils.String.isEmptyOrNull(content))
+            throw new BadRequestException(ErrorMessageConstants.FORBIDDEN_ACTION);
+
+        notification.setContent(content);
+        notification.setCustomContent(content);
+        return notificationMapper.toResponse(notificationsRepository.save(notification));
+    }
+
+    @Override
+    public void deleteNotification(Long notificationId) {
+        var notification = notificationsRepository.findById(notificationId).orElseThrow(() -> new BadRequestException(ErrorMessageConstants.NOTIFICATION_NOT_FOUND));
+
+        if (notification.getCustomContent() == null)
+            throw new BadRequestException(ErrorMessageConstants.FORBIDDEN_ACTION);
+
+        notification.setDeletedAt(CommonUtils.DateTime.getCurrentTimestamp());
+        notificationsRepository.save(notification);
+    }
+
+    @Override
     public DataWithPage<NotificationResponse> getNotifications(Account account, Pageable pageable) {
         var page = notificationsRepository.getNotificationsByReceiverId(account.getId(), account.getRole().name(), pageable);
         return DataWithPage.<NotificationResponse>builder()
@@ -108,6 +166,15 @@ public class NotificationServiceImpl implements NotificationService {
                 }
                 return notificationMapper.toResponse(notification);
             }).toList())
+            .pageInfo(PageUtils.makePageInfo(page))
+            .build();
+    }
+
+    @Override
+    public DataWithPage<NotificationResponse> getCreatedNotifications(Pageable pageable) {
+        var page = notificationsRepository.getCreatedNotifications(pageable);
+        return DataWithPage.<NotificationResponse>builder()
+            .data(page.getContent().stream().map(notificationMapper::toResponse).toList())
             .pageInfo(PageUtils.makePageInfo(page))
             .build();
     }
@@ -169,7 +236,7 @@ public class NotificationServiceImpl implements NotificationService {
                         ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, ": " + thread.getContent())
                         : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, "");
                 }
-                case LIKE, UNLIKE, UNSHARED, CREATE_THREAD_DONE, UNFOLLOW, EDIT_THREAD -> null;
+                case LIKE, UNLIKE, UNSHARED, CREATE_THREAD_DONE, UNFOLLOW, EDIT_THREAD, CUSTOM -> null;
             };
         } catch (Exception e) {
             return null;

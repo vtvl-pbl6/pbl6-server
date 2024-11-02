@@ -54,3 +54,14 @@ change_password_request:
     password_validation:
       code: VAL_CHP0103
       message: Xác nhận mật khẩu là bắt buộc. Mật khẩu phải từ 8 đến 32 ký tự, chứa ít nhất 1 chữ cái viết hoa, 1 chữ cái viết thường, 1 ký tự số.
+
+# Notification request
+notification_request:
+  receiver_id:
+    not_null:
+      code: VAL_NOT0101
+      message: Người nhận không được để trống
+  content:
+    not_blank_string_validation:
+      code: VAL_NOT0102
+      message: Nội dung không được để trống

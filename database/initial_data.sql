@@ -100,6 +100,7 @@ create table if not exists notifications
     object_id         bigint,
     type              varchar(255)                        not null,
     content           varchar(1000)                       not null,
+    custom_content    varchar(1000),
     is_read           boolean   default false             not null,
     created_at        timestamp default CURRENT_TIMESTAMP not null,
     updated_at        timestamp,

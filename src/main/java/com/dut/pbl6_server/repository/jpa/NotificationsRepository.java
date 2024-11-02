@@ -20,9 +20,15 @@ public interface NotificationsRepository extends JpaRepository<Notification, Lon
             LEFT JOIN FETCH n.receiver nr
             LEFT JOIN FETCH nr.avatarFile
             WHERE
-                n.receiver.id = :receiverId
-                OR (n.receiver IS NULL AND :receiverRole = 'USER' AND n.publicUserFlag = TRUE)
-                OR (n.receiver IS NULL AND :receiverRole = 'ADMIN' AND n.publicAdminFlag = TRUE)
+                (
+                    n.receiver.id = :receiverId
+                    OR (n.receiver IS NULL AND :receiverRole = 'USER' AND n.publicUserFlag = TRUE)
+                    OR (n.receiver IS NULL AND :receiverRole = 'ADMIN' AND n.publicAdminFlag = TRUE)
+                )
+                AND n.deletedAt IS NULL
         """)
     Page<Notification> getNotificationsByReceiverId(Long receiverId, String receiverRole, Pageable pageable);
+
+    @Query("SELECT n FROM Notification n WHERE n.customContent IS NOT NULL AND n.deletedAt IS NULL")
+    Page<Notification> getCreatedNotifications(Pageable pageable);
 }

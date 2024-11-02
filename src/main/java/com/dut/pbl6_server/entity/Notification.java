@@ -29,6 +29,8 @@ public class Notification extends AbstractEntity {
     @Column(nullable = false)
     private String content; // In Vietnamese by default
 
+    private String customContent; // In Vietnamese by default
+
     @Column(nullable = false)
     @Builder.Default
     private boolean isRead = false;
