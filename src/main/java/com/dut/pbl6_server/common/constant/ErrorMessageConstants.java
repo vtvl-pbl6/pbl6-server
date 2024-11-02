@@ -40,6 +40,7 @@ public final class ErrorMessageConstants {
     public static final String USERNAME_ALREADY_EXISTS = "username_already_exists";
     public static final String EMAIL_ALREADY_EXISTS = "email_already_exists";
     public static final String CONFIRM_PASSWORD_NOT_MATCHING = "confirm_password_not_matching";
+    public static final String INCORRECT_OLD_PASSWORD = "incorrect_old_password";
 
     /**
      * Account
@@ -55,6 +56,7 @@ public final class ErrorMessageConstants {
     public static final String CANNOT_UNFOLLOW_YOURSELF = "cannot_unfollow_yourself";
     public static final String CANNOT_UNFOLLOW_ADMIN = "cannot_unfollow_admin";
     public static final String ALREADY_UNFOLLOWED = "already_unfollowed";
+    public static final String NEW_PASSWORD_MUST_BE_DIFFERENT = "new_password_must_be_different";
 
     /**
      * Thread

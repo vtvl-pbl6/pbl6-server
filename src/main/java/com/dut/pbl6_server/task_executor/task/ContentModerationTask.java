@@ -78,9 +78,10 @@ public class ContentModerationTask extends BaseTask<ContentModerationResult> {
                 log.info(String.format("%s\n%s", url, responseBody)); // Log the response body
                 AbstractResponse response = CommonUtils.Json.decode(responseBody, AbstractResponse.class);
                 isTextModeratedDone = true;
-                onDone.call(new ContentModerationResult(response, true, isImageModeratedDone)); // Notify the caller
+                onDone.call(new ContentModerationResult(response, true, false)); // Notify the caller
             } catch (Exception e) {
                 log.error("Error while processing text: " + e.getMessage());
+                isTextModeratedDone = true;
             }
         }
 
@@ -107,11 +108,15 @@ public class ContentModerationTask extends BaseTask<ContentModerationResult> {
                 String responseBody = execute.body() != null ? execute.body().string() : null;
                 log.info(String.format("%s\n%s", url, responseBody)); // Log the response body
                 AbstractResponse response = CommonUtils.Json.decode(responseBody, AbstractResponse.class);
-                onDone.call(new ContentModerationResult(response, isTextModeratedDone, true)); // Notify the caller
+                isImageModeratedDone = true;
+                onDone.call(new ContentModerationResult(response, false, true)); // Notify the caller
             } catch (Exception e) {
                 log.error("Error while processing file: " + e.getMessage());
+                isImageModeratedDone = true;
             }
         }
+
+        onDone.call(new ContentModerationResult(null, isTextModeratedDone, isImageModeratedDone));
     }
 
     private static String getUrl(String serverUrl, boolean isText) {

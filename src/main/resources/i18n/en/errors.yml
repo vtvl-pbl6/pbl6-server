@@ -194,3 +194,10 @@ notification_cant_send_to_yourself:
   code: ERR_NOT0102
   message: You can't send notification to yourself!
 
+# Change Password
+new_password_must_be_different:
+  code: ERR_CHA0101
+  message: New password must be different from the old password!
+incorrect_old_password:
+  code: ERR_CHA0102
+  message: Incorrect old password!

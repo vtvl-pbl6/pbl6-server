@@ -49,16 +49,15 @@ public class ContentModerationTaskService implements BaseTaskService<ContentMode
                     ? thread.getFiles().stream().map(ThreadFile::getFile).toList()
                     : null,
                 result -> {
-                    if (result == null || result.getResponse() == null) return;
                     try {
                         var response = result.getResponse();
-                        if (!response.getIsSuccess()) { // Log error if response is not success
+                        if (response != null && !response.getIsSuccess()) { // Log error if response is not success
                             response.getErrors().forEach(e -> log.error(e.toString()));
                             return;
                         }
 
                         // Handle text moderation response
-                        if (result.isTextModeratedDone()) {
+                        if (result.isTextModeratedDone() && response != null) {
                             var textSpanDetectionResult = (Map<String, ?>) response.getData();
                             var hosSpans = (List<Map<String, ?>>) textSpanDetectionResult.get("hos_spans");
                             if (CommonUtils.List.isNotEmptyOrNull(hosSpans)) {
@@ -72,7 +71,7 @@ public class ContentModerationTaskService implements BaseTaskService<ContentMode
                         }
 
                         // Handle image moderation response
-                        if (result.isImageModeratedDone()) {
+                        if (result.isImageModeratedDone() && response != null) {
                             var nsfwDetectionResult = (Map<String, ?>) response.getData();
                             var nsfw = (List<Map<String, ?>>) nsfwDetectionResult.get("nsfw");
                             List<Nsfw> detectionResult = nsfw.stream().map(Nsfw::fromMap).toList();

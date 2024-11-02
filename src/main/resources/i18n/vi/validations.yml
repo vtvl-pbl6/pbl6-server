@@ -39,3 +39,18 @@ register_request:
     size:
       code: VAL_RES105
       message: Tên người dùng phải dài hơn 5 ký tự
+
+# Change password request
+change_password_request:
+  old_password:
+    password_validation:
+      code: VAL_CHP0101
+      message: Mật khẩu hiện tại là bắt buộc. Mật khẩu phải từ 8 đến 32 ký tự, chứa ít nhất 1 chữ cái viết hoa, 1 chữ cái viết thường, 1 ký tự số.
+  new_password:
+    password_validation:
+      code: VAL_CHP0102
+      message: Mật khẩu mới là bắt buộc. Mật khẩu phải từ 8 đến 32 ký tự, chứa ít nhất 1 chữ cái viết hoa, 1 chữ cái viết thường, 1 ký tự số.
+  confirm_password:
+    password_validation:
+      code: VAL_CHP0103
+      message: Xác nhận mật khẩu là bắt buộc. Mật khẩu phải từ 8 đến 32 ký tự, chứa ít nhất 1 chữ cái viết hoa, 1 chữ cái viết thường, 1 ký tự số.
