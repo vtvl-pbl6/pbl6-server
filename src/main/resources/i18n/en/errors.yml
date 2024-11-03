@@ -192,6 +192,27 @@ thread_update_request_invalid:
 cannot_change_visibility_of_comment:
   code: ERR_THR0114
   message: You can not change the visibility of a comment!
+thread_is_locked:
+  code: ERR_THR0115
+  message: Thread is locked!
+thread_already_locked:
+  code: ERR_THR0116
+  message: Thread is already locked!
+thread_already_unlocked:
+  code: ERR_THR0117
+  message: Thread is already unlocked!
+request_reason_is_not_empty:
+  code: ERR_THR0118
+  message: Request reason is not empty!
+thread_already_accepted:
+  code: ERR_THR0119
+  message: Thread is already accepted!
+thread_already_rejected:
+  code: ERR_THR0120
+  message: Thread is already rejected!
+thread_already_requested:
+  code: ERR_THR0121
+  message: Thread is already requested!
 
 # Repost
 repost_not_found:

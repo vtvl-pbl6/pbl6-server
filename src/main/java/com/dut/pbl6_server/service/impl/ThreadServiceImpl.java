@@ -8,9 +8,11 @@ import com.dut.pbl6_server.common.model.DataWithPage;
 import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.common.util.PageUtils;
 import com.dut.pbl6_server.dto.request.ThreadRequest;
+import com.dut.pbl6_server.dto.respone.NotificationResponse;
 import com.dut.pbl6_server.dto.respone.ThreadResponse;
 import com.dut.pbl6_server.entity.Thread;
 import com.dut.pbl6_server.entity.*;
+import com.dut.pbl6_server.entity.enums.AccountRole;
 import com.dut.pbl6_server.entity.enums.ThreadStatus;
 import com.dut.pbl6_server.entity.enums.Visibility;
 import com.dut.pbl6_server.mapper.ThreadMapper;
@@ -430,6 +432,78 @@ public class ThreadServiceImpl implements ThreadService {
 
         // Send notification to all subscribers
         notificationService.sendNotification(currentUser, null, NotificationType.UNSHARED, thread, false, true);
+    }
+
+    @Override
+    public void lockThread(Account admin, Long threadId) {
+        var thread = threadsRepository.findById(threadId).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
+        if (thread.getStatus() == ThreadStatus.PENDING)
+            throw new NotFoundObjectException(ErrorMessageConstants.THREAD_ALREADY_LOCKED);
+        thread.setStatus(ThreadStatus.PENDING);
+        thread = threadsRepository.save(thread);
+        // Send notification to subscriber
+        notificationService.sendNotification(admin, thread.getAuthor(), NotificationType.LOCK_THREAD, thread, false, false);
+    }
+
+    @Override
+    public void unlockThread(Account admin, Long threadId) {
+        var thread = threadsRepository.findById(threadId).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
+        if (thread.getStatus() != ThreadStatus.PENDING)
+            throw new NotFoundObjectException(ErrorMessageConstants.THREAD_ALREADY_UNLOCKED);
+        thread.setStatus(ThreadStatus.CREATE_DONE);
+        thread = threadsRepository.save(thread);
+        // Send notification to subscriber
+        notificationService.sendNotification(admin, thread.getAuthor(), NotificationType.UNLOCK_THREAD, thread, false, false);
+    }
+
+    @Override
+    public NotificationResponse requestThreadModeration(Account currentUser, Long threadId, String reason) {
+        var thread = threadsRepository.findById(threadId).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
+        // Check permission
+        if (!currentUser.getId().equals(thread.getAuthor().getId()))
+            throw new BadRequestException(ErrorMessageConstants.FORBIDDEN_ACTION);
+        // Check reason
+        if (CommonUtils.String.isEmptyOrNull(reason))
+            throw new BadRequestException(ErrorMessageConstants.REQUEST_REASON_IS_NOT_EMPTY);
+        // Check already requested
+        if (notificationsRepository.isAlreadyRequestModeration(currentUser.getId(), threadId))
+            throw new BadRequestException(ErrorMessageConstants.THREAD_ALREADY_REQUESTED);
+        if (thread.getStatus() != ThreadStatus.PENDING) {
+            thread.setStatus(ThreadStatus.PENDING);
+            threadsRepository.save(thread);
+        }
+        // Send notification to admin
+        return notificationService.sendNotification(currentUser, null, NotificationType.REQUEST_THREAD_MODERATION, thread, true, false, reason);
+    }
+
+    @Override
+    public void acceptRequestModeration(Account admin, Long threadId) {
+        var thread = threadsRepository.findById(threadId).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
+        // Check permission
+        if (admin.getRole() != AccountRole.ADMIN)
+            throw new BadRequestException(ErrorMessageConstants.FORBIDDEN_ACTION);
+        if (thread.getStatus() == ThreadStatus.CREATE_DONE)
+            throw new BadRequestException(ErrorMessageConstants.THREAD_ALREADY_ACCEPTED);
+        // Update thread's status
+        thread.setStatus(ThreadStatus.CREATE_DONE);
+        threadsRepository.save(thread);
+        // Send notification to author
+        notificationService.sendNotification(admin, thread.getAuthor(), NotificationType.REQUEST_THREAD_MODERATION_SUCCESS, thread, false, false);
+    }
+
+    @Override
+    public void denyRequestModeration(Account admin, Long threadId) {
+        var thread = threadsRepository.findById(threadId).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
+        // Check permission
+        if (admin.getRole() != AccountRole.ADMIN)
+            throw new BadRequestException(ErrorMessageConstants.FORBIDDEN_ACTION);
+        if (thread.getStatus() == ThreadStatus.REJECTED)
+            throw new BadRequestException(ErrorMessageConstants.THREAD_ALREADY_REJECTED);
+        // Update thread's status
+        thread.setStatus(ThreadStatus.REJECTED);
+        threadsRepository.save(thread);
+        // Send notification to author
+        notificationService.sendNotification(admin, thread.getAuthor(), NotificationType.REQUEST_THREAD_MODERATION_FAILED, thread, false, false);
     }
 
     private Thread checkThreadVisibility(Account currentUser, Long threadId) {

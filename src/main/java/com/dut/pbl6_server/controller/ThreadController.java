@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController("PostController")
 @RequestMapping("/api/v1/thread")
@@ -127,5 +128,14 @@ public class ThreadController {
     ) {
         threadService.unlikeThread(account, threadId);
         return null;
+    }
+
+    @PostMapping("/{threadId}/moderation/request")
+    public Object requestThreadModeration(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId,
+        @RequestBody Map<String, String> body
+    ) {
+        return threadService.requestThreadModeration(account, threadId, body.get("reason"));
     }
 }

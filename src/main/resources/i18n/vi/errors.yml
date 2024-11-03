@@ -192,6 +192,24 @@ thread_update_request_invalid:
 cannot_change_visibility_of_comment:
   code: ERR_THR0114
   message: Bạn không thể thay đổi trạng thái hiển thị của bình luận!
+thread_already_locked:
+  code: ERR_THR0116
+  message: Bài viết đã bị khóa!
+thread_already_unlocked:
+  code: ERR_THR0117
+  message: Bài viết đã được mở khóa!
+request_reason_is_not_empty:
+  code: ERR_THR0118
+  message: Lý do không được để trống!
+thread_already_accepted:
+  code: ERR_THR0119
+  message: Bài viết đã được chấp nhận!
+thread_already_rejected:
+  code: ERR_THR0120
+  message: Bài viết đã bị từ chối!
+thread_already_requested:
+  code: ERR_THR0121
+  message: Yêu cầu kiểm duyệt bài viết đã được gửi!
 
 # Repost
 repost_not_found:

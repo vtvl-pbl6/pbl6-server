@@ -26,8 +26,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,7 +45,8 @@ public class NotificationServiceImpl implements NotificationService {
         NotificationType type,
         AbstractEntity object,
         boolean publicAdminFlag,
-        boolean publicUserFlag
+        boolean publicUserFlag,
+        String... args
     ) {
         // Check if sender and receiver are the same
         if (sender != null && receiver != null && sender.getEmail().equals(receiver.getEmail())) {
@@ -54,12 +54,12 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         // Get content of notification in default language in order to save it to database
-        String savedContent = getContent(type, sender, LocaleLanguage.VI.getValue(), object, false);
+        String savedContent = getContent(type, sender, LocaleLanguage.VI.getValue(), object, false, args);
 
         // Get content of notification in receiver's language
         String receiverContent = savedContent;
         if (receiver != null && !receiver.getLanguage().equals(I18nUtils.getCurrentLanguage().getValue())) {
-            receiverContent = getContent(type, sender, receiver.getLanguage(), object, false);
+            receiverContent = getContent(type, sender, receiver.getLanguage(), object, false, args);
         }
 
         // Save notification to database if it is required
@@ -194,13 +194,17 @@ public class NotificationServiceImpl implements NotificationService {
             Pattern pattern = Pattern.compile(CommonConstants.I18N_REGEX_PATTERN);
             Matcher rawMatcher = pattern.matcher(notification.getContent());
             Matcher i18nMatcher = pattern.matcher(i18nContent);
-            if (rawMatcher.results().toList().size() == i18nMatcher.results().toList().size()) {
+            var rawMatcherResults = rawMatcher.results().toList();
+            var i18nMatcherResults = i18nMatcher.results().toList();
+            if (rawMatcherResults.size() == i18nMatcherResults.size()) {
                 Map<String, String> i18nMap = new HashMap<>();
-                while (rawMatcher.find() && i18nMatcher.find()) {
-                    i18nMap.putIfAbsent(rawMatcher.group(), i18nMatcher.group());
+                for (int i = 0; i < rawMatcherResults.size(); i++) {
+                    i18nMap.putIfAbsent(rawMatcherResults.get(i).group(), i18nMatcherResults.get(i).group());
                 }
                 var translatedContent = notification.getContent();
-                i18nMap.keySet().forEach(key -> translatedContent.replaceAll(key, i18nMap.get(key)));
+                for (String key : i18nMap.keySet()) {
+                    translatedContent = translatedContent.replaceAll(key, i18nMap.get(key));
+                }
                 return translatedContent;
             }
         }
@@ -208,7 +212,7 @@ public class NotificationServiceImpl implements NotificationService {
         return null;
     }
 
-    private String getContent(NotificationType type, Account sender, String language, AbstractEntity object, boolean forTranslation) {
+    private String getContent(NotificationType type, Account sender, String language, AbstractEntity object, boolean forTranslation, String... args) {
         I18nUtils.setLanguage(language);
         if (forTranslation)
             return I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP);
@@ -219,27 +223,36 @@ public class NotificationServiceImpl implements NotificationService {
                 case REQUEST_THREAD_MODERATION, COMMENT -> {
                     var thread = (Thread) object;
                     yield CommonUtils.String.isNotEmptyOrNull(thread.getContent())
-                        ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName(), ": " + thread.getContent())
-                        : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, sender.getDisplayName(), "");
+                        ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, concatenateParams(args, sender.getDisplayName(), ": " + thread.getContent()))
+                        : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, concatenateParams(args, sender.getDisplayName(), ""));
                 }
                 case SHARE -> {
                     var thread = (Thread) object;
                     yield CommonUtils.String.isNotEmptyOrNull(thread.getContent())
-                        ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, thread.getSharers().getFirst().getUser().getDisplayName(), ": " + thread.getContent())
-                        : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, thread.getSharers().getFirst().getUser().getDisplayName(), "");
+                        ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, concatenateParams(args, thread.getSharers().getFirst().getUser().getDisplayName(), ": " + thread.getContent()))
+                        : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, concatenateParams(args, thread.getSharers().getFirst().getUser().getDisplayName(), ""));
                 }
                 case ACTIVATE_ACCOUNT, DEACTIVATE_ACCOUNT ->
                     I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP);
-                case REQUEST_THREAD_MODERATION_FAILED, REQUEST_THREAD_MODERATION_SUCCESS -> {
+                case REQUEST_THREAD_MODERATION_FAILED, REQUEST_THREAD_MODERATION_SUCCESS, LOCK_THREAD,
+                     UNLOCK_THREAD -> {
                     var thread = (Thread) object;
                     yield CommonUtils.String.isNotEmptyOrNull(thread.getContent())
-                        ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, ": " + thread.getContent())
-                        : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, "");
+                        ? I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, concatenateParams(args, ": " + thread.getContent()))
+                        : I18nUtils.tr("notification." + type.getValue(), LocaleFile.APP, concatenateParams(args, ""));
                 }
                 case LIKE, UNLIKE, UNSHARED, CREATE_THREAD_DONE, UNFOLLOW, EDIT_THREAD, CUSTOM -> null;
             };
         } catch (Exception e) {
             return null;
         }
+    }
+
+    // Helper method to concatenate parameters
+    private String[] concatenateParams(String[] args, String... elements) {
+        List<String> list = new ArrayList<>();
+        Collections.addAll(list, elements);
+        Collections.addAll(list, args);
+        return list.toArray(new String[0]);
     }
 }

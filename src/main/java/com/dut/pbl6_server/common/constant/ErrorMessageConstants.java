@@ -79,6 +79,12 @@ public final class ErrorMessageConstants {
     public static final String CANNOT_UNSHARED_YOUR_OWN_THREAD = "cannot_unshared_your_own_thread";
     public static final String ALREADY_UNSHARED = "already_unshared";
     public static final String CANNOT_CHANGE_VISIBILITY_OF_COMMENT = "cannot_change_visibility_of_comment";
+    public static final String THREAD_ALREADY_LOCKED = "thread_already_locked";
+    public static final String THREAD_ALREADY_UNLOCKED = "thread_already_unlocked";
+    public static final String REQUEST_REASON_IS_NOT_EMPTY = "request_reason_is_not_empty";
+    public static final String THREAD_ALREADY_ACCEPTED = "thread_already_accepted";
+    public static final String THREAD_ALREADY_REJECTED = "thread_already_rejected";
+    public static final String THREAD_ALREADY_REQUESTED = "thread_already_requested";
 
     /**
      * Repost

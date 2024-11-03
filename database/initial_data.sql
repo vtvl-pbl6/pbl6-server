@@ -10,7 +10,7 @@ create type account_role as enum ('ADMIN', 'USER');
 
 create type account_gender as enum ('MALE', 'FEMALE', 'OTHER');
 
-create type thread_status as enum ('CREATING', 'CREATE_DONE', 'PENDING');
+create type thread_status as enum ('CREATING', 'CREATE_DONE', 'PENDING', 'REJECTED');
 
 
 --

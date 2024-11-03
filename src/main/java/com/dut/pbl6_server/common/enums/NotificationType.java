@@ -16,6 +16,8 @@ public enum NotificationType {
     ACTIVATE_ACCOUNT("activate_account", true),
     DEACTIVATE_ACCOUNT("deactivate_account", true),
     CUSTOM("custom", true),
+    LOCK_THREAD("lock_thread", true),
+    UNLOCK_THREAD("unlock_thread", true),
     // For real-time only,
     UNFOLLOW("unfollow", false),
     CREATE_THREAD_DONE("create_thread_done", false),

@@ -24,7 +24,15 @@ public interface NotificationService {
      * @return DTO response of notification
      * @see com.dut.pbl6_server.common.enums.WebSocketDestination#getDestination(NotificationType, AccountRole, boolean, boolean)
      */
-    NotificationResponse sendNotification(Account sender, Account receiver, NotificationType type, AbstractEntity object, boolean publicAdminFlag, boolean publicUserFlag);
+    NotificationResponse sendNotification(
+        Account sender,
+        Account receiver,
+        NotificationType type,
+        AbstractEntity object,
+        boolean publicAdminFlag,
+        boolean publicUserFlag,
+        String... args
+    );
 
     NotificationResponse createNotification(Account admin, NotificationRequest request, boolean publicAdminFlag, boolean publicUserFlag);
 

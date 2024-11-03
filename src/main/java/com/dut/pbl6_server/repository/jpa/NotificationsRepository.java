@@ -31,4 +31,18 @@ public interface NotificationsRepository extends JpaRepository<Notification, Lon
 
     @Query("SELECT n FROM Notification n WHERE n.customContent IS NOT NULL AND n.deletedAt IS NULL")
     Page<Notification> getCreatedNotifications(Pageable pageable);
+
+    @Query("""
+            SELECT CASE
+                WHEN COUNT(n) > 0 THEN TRUE
+                ELSE FALSE
+            END
+            FROM Notification n
+            WHERE
+                n.sender.id = :senderId
+                AND n.objectId = :threadId
+                AND n.type = 'REQUEST_THREAD_MODERATION'
+                AND n.deletedAt IS NULL
+        """)
+    boolean isAlreadyRequestModeration(Long senderId, Long threadId);
 }
