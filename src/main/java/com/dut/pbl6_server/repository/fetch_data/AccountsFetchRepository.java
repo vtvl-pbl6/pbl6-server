@@ -14,4 +14,6 @@ public interface AccountsFetchRepository extends FetchRepository<Account, Long, 
     List<Account> getUserAccounts();
 
     Optional<Account> getByIdAlthoughDeleted(Long id);
+
+    List<Account> getAccountsByIds(List<Long> ids);
 }

@@ -60,6 +60,7 @@ public final class ErrorMessageConstants {
     public static final String CANNOT_ACTION_ADMIN_ACCOUNT = "cannot_action_admin_account";
     public static final String ACCOUNT_IS_ALREADY_ACTIVE = "already_active";
     public static final String ACCOUNT_IS_ALREADY_INACTIVE = "already_inactive";
+    public static final String AVATAR_IS_REQUIRED = "avatar_is_required";
 
     /**
      * Thread

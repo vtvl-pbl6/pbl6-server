@@ -2,6 +2,7 @@ package com.dut.pbl6_server.repository.fetch_data.impl;
 
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.enums.AccountRole;
+import com.dut.pbl6_server.entity.enums.AccountStatus;
 import com.dut.pbl6_server.entity.enums.Visibility;
 import com.dut.pbl6_server.repository.fetch_data.AccountsFetchRepository;
 import com.dut.pbl6_server.repository.fetch_data.base.FetchBaseRepository;
@@ -35,6 +36,7 @@ public class AccountsFetchRepositoryImpl implements AccountsFetchRepository {
                 new WhereElement("role", AccountRole.ADMIN, WhereOperator.NOT_EQUAL),
                 new WhereElement("visibility", Visibility.PUBLIC, WhereOperator.EQUAL, null, WhereLogical.START_GROUP_WITH_OR),
                 new WhereElement("visibility", Visibility.FRIEND_ONLY, WhereOperator.EQUAL, null, WhereLogical.END_GROUP_WITH_AND),
+                new WhereElement("status", AccountStatus.ACTIVE, WhereOperator.EQUAL),
                 new WhereElement("deletedAt", null, WhereOperator.IS_NULL)
             ),
             pageable
@@ -55,5 +57,17 @@ public class AccountsFetchRepositoryImpl implements AccountsFetchRepository {
             List.of(new WhereElement("id", id, WhereOperator.EQUAL))
             , null
         ).stream().findFirst();
+    }
+
+    @Override
+    public List<Account> getAccountsByIds(List<Long> ids) {
+        return fetchBaseRepository.fetchAllDataWithoutPagination(
+            List.of(
+                new WhereElement("id", ids, WhereOperator.IN),
+                new WhereElement("status", AccountStatus.ACTIVE, WhereOperator.EQUAL),
+                new WhereElement("deletedAt", null, WhereOperator.IS_NULL)
+            ),
+            null
+        );
     }
 }

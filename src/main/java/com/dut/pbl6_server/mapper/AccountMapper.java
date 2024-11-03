@@ -2,6 +2,7 @@ package com.dut.pbl6_server.mapper;
 
 import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.config.SpringMapStructConfig;
+import com.dut.pbl6_server.dto.request.UpdateProfileRequest;
 import com.dut.pbl6_server.dto.respone.AccountResponse;
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.Follower;
@@ -69,6 +70,33 @@ public interface AccountMapper {
     @Mapping(source = "account.followers", target = "followerNum", qualifiedByName = "getFollowers")
     @Mapping(source = "isFollowedByCurrentUser", target = "isFollowedByCurrentUser")
     AccountResponse toUserInfoResponse(Account account, Boolean isFollowedByCurrentUser);
+
+    default Account toEntity(Account account, UpdateProfileRequest request) {
+        if (account == null) return null;
+
+        if (request.getFirstName() != null) {
+            account.setFirstName(request.getFirstName());
+        }
+        if (request.getLastName() != null) {
+            account.setLastName(request.getLastName());
+        }
+        if (request.getBirthday() != null) {
+            account.setBirthday(request.getBirthday());
+        }
+        if (request.getGender() != null) {
+            account.setGender(request.getGender());
+        }
+        if (request.getBio() != null) {
+            account.setBio(request.getBio());
+        }
+        if (request.getVisibility() != null) {
+            account.setVisibility(request.getVisibility());
+        }
+        if (request.getLanguage() != null) {
+            account.setLanguage(request.getLanguage());
+        }
+        return account;
+    }
 
     @Named("getFollowers")
     default Integer getFollowers(List<Follower> followers) {

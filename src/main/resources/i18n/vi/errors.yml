@@ -131,6 +131,9 @@ already_active:
 already_inactive:
   code: ERR_ACC0118
   message: Tài khoản này đã bị vô hiệu hóa!
+avatar_is_required:
+  code: ERR_ACC0119
+  message: Yêu cầu phải có ảnh đại diện!
 
 # File
 upload_file_failed:

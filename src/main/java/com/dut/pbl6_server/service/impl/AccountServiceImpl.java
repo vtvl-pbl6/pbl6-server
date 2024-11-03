@@ -6,6 +6,7 @@ import com.dut.pbl6_server.common.exception.BadRequestException;
 import com.dut.pbl6_server.common.model.DataWithPage;
 import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.common.util.PageUtils;
+import com.dut.pbl6_server.dto.request.UpdateProfileRequest;
 import com.dut.pbl6_server.dto.respone.AccountResponse;
 import com.dut.pbl6_server.entity.Account;
 import com.dut.pbl6_server.entity.Follower;
@@ -14,12 +15,15 @@ import com.dut.pbl6_server.entity.enums.AccountStatus;
 import com.dut.pbl6_server.mapper.AccountMapper;
 import com.dut.pbl6_server.repository.fetch_data.AccountsFetchRepository;
 import com.dut.pbl6_server.repository.jpa.AccountsRepository;
+import com.dut.pbl6_server.repository.jpa.FilesRepository;
 import com.dut.pbl6_server.repository.jpa.FollowersRepository;
 import com.dut.pbl6_server.service.AccountService;
+import com.dut.pbl6_server.service.CloudinaryService;
 import com.dut.pbl6_server.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +36,8 @@ public class AccountServiceImpl implements AccountService {
     private final FollowersRepository followersRepository;
     private final AccountMapper accountMapper;
     private final NotificationService notificationService;
+    private final CloudinaryService cloudinaryService;
+    private final FilesRepository filesRepository;
 
     @Override
     public AccountResponse getAccountInfo(Account currentUser) {
@@ -76,9 +82,22 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public DataWithPage<AccountResponse> getFollowers(Account currentUser, Long userId, Pageable pageable) {
-        var page = followersRepository.findAllByUserId(userId, pageable);
+        var page = followersRepository.findFollowerIds(userId, pageable);
+        var accounts = accountsFetchRepository.getAccountsByIds(page.getContent());
         return DataWithPage.<AccountResponse>builder()
-            .data(page.getContent().stream().map(e -> accountMapper.toUserInfoResponse(e.getFollower(), null)).toList())
+            .data(accounts.stream().map(
+                e -> accountMapper.toUserInfoResponse(e, e.getFollowers().stream().anyMatch(f -> f.getFollower().getId().equals(currentUser.getId())))
+            ).toList())
+            .pageInfo(PageUtils.makePageInfo(page))
+            .build();
+    }
+
+    @Override
+    public DataWithPage<AccountResponse> getFollowingUsers(Account currentUser, Long userId, Pageable pageable) {
+        var page = followersRepository.findFollowingUserIds(userId, pageable);
+        var accounts = accountsFetchRepository.getAccountsByIds(page.getContent());
+        return DataWithPage.<AccountResponse>builder()
+            .data(accounts.stream().map(e -> accountMapper.toUserInfoResponse(e, true)).toList())
             .pageInfo(PageUtils.makePageInfo(page))
             .build();
     }
@@ -132,6 +151,37 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public AccountResponse editProfile(Account currentUser, UpdateProfileRequest request) {
+        var account = accountsFetchRepository.findById(currentUser.getId()).orElseThrow(() -> new BadRequestException(ErrorMessageConstants.ACCOUNT_NOT_FOUND));
+
+        // No field is updated
+        if (request.hasAllNullFields())
+            return accountMapper.toResponse(account);
+
+        var result = accountsRepository.save(accountMapper.toEntity(account, request));
+        result.setFollowers(account.getFollowers());
+        result.setFollowingUsers(account.getFollowingUsers());
+        return accountMapper.toResponse(result);
+    }
+
+    @Override
+    public AccountResponse uploadAvatar(Account currentUser, MultipartFile avatar) {
+        var account = accountsFetchRepository.findById(currentUser.getId()).orElseThrow(() -> new BadRequestException(ErrorMessageConstants.ACCOUNT_NOT_FOUND));
+        if (avatar == null)
+            throw new BadRequestException(ErrorMessageConstants.AVATAR_IS_REQUIRED);
+        var oldFile = account.getAvatarFile();
+        // Upload new avatar file
+        var file = cloudinaryService.uploadFile(avatar);
+        account.setAvatarFile(file);
+        var result = accountsRepository.save(account);
+        result.setFollowers(account.getFollowers());
+        result.setFollowingUsers(account.getFollowingUsers());
+        // Delete old avatar file if exists
+        if (oldFile != null) cloudinaryService.deleteFiles(List.of(oldFile.getId()));
+        return accountMapper.toResponse(result);
+    }
+
+    @Override
     public List<AccountResponse> getAccounts() {
         return accountsFetchRepository.getUserAccounts().stream().map(accountMapper::toResponse).toList();
     }
@@ -157,6 +207,7 @@ public class AccountServiceImpl implements AccountService {
         if (account.getStatus() == AccountStatus.INACTIVE)
             throw new BadRequestException(ErrorMessageConstants.ACCOUNT_IS_ALREADY_INACTIVE);
         account.setStatus(AccountStatus.INACTIVE);
+        account.setDeletedAt(CommonUtils.DateTime.getCurrentTimestamp());
         notificationService.sendNotification(admin, account, NotificationType.DEACTIVATE_ACCOUNT, account, false, false);
         return accountMapper.toResponse(accountsRepository.save(account));
     }
@@ -174,6 +225,7 @@ public class AccountServiceImpl implements AccountService {
         if (account.getStatus() == AccountStatus.ACTIVE)
             throw new BadRequestException(ErrorMessageConstants.ACCOUNT_IS_ALREADY_ACTIVE);
         account.setStatus(AccountStatus.ACTIVE);
+        account.setDeletedAt(null);
         notificationService.sendNotification(admin, account, NotificationType.ACTIVATE_ACCOUNT, account, false, false);
         return accountMapper.toResponse(accountsRepository.save(account));
     }

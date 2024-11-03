@@ -131,6 +131,9 @@ already_active:
 already_inactive:
   code: ERR_ACC0118
   message: Account is already inactive!
+avatar_is_required:
+  code: ERR_ACC0119
+  message: Avatar is required!
 
 # File
 upload_file_failed:
