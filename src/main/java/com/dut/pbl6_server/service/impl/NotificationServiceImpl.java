@@ -180,6 +180,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private String trContent(Notification notification, String language) {
+        if (CommonUtils.String.isEmptyOrNull(notification.getContent())) return null;
         // Get content for translation
         var i18nContent = getContent(
             CommonUtils.stringToEnum(notification.getType(), NotificationType.class),

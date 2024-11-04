@@ -25,6 +25,8 @@ public interface NotificationMapper {
     default String getContent(Notification notification) {
         return CommonUtils.String.isNotEmptyOrNull(notification.getCustomContent())
             ? notification.getCustomContent()
-            : notification.getContent().replaceAll(CommonConstants.I18N_REGEX_PATTERN, "$1");
+            : CommonUtils.String.isNotEmptyOrNull(notification.getContent())
+            ? notification.getContent().replaceAll(CommonConstants.I18N_REGEX_PATTERN, "$1")
+            : null;
     }
 }
