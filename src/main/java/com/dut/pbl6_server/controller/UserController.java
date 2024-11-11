@@ -1,6 +1,7 @@
 package com.dut.pbl6_server.controller;
 
 import com.dut.pbl6_server.annotation.auth.CurrentAccount;
+import com.dut.pbl6_server.annotation.auth.PreAuthorizeAll;
 import com.dut.pbl6_server.annotation.auth.PreAuthorizeUser;
 import com.dut.pbl6_server.common.util.PageUtils;
 import com.dut.pbl6_server.dto.request.UpdateProfileRequest;
@@ -18,6 +19,7 @@ public class UserController {
     private final AccountService accountService;
 
     @GetMapping
+    @PreAuthorizeAll
     public Object getUserInfo(@CurrentAccount Account account, @RequestParam(name = "id", required = false) Long id) {
         return id != null
             ? accountService.getAccountInfoById(account, id)
