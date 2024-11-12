@@ -15,10 +15,11 @@ import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 
-@Mapper(config = SpringMapStructConfig.class)
+@Mapper(config = SpringMapStructConfig.class, uses = {NotificationMapper.class})
 public interface ThreadMapper {
     String TO_RESPONSE_NAMED = "thread_to_response";
     String TO_RESPONSE_WITHOUT_COMMENTS_NAMED = "thread_to_response_without_comments";
+    String TO_RESPONSE_WITH_MODERATION = "thread_to_response_with_moderation";
     ThreadMapper INSTANCE = Mappers.getMapper(ThreadMapper.class);
 
     @Named(TO_RESPONSE_NAMED)
@@ -42,6 +43,23 @@ public interface ThreadMapper {
     @Mapping(source = "comments", target = "commentNum", qualifiedByName = "getCommentNum")
     @Mapping(source = "comments", target = "comments", ignore = true)
     ThreadResponse toResponseWithoutComments(Thread thread);
+
+    @Named(TO_RESPONSE_WITH_MODERATION)
+    @Mapping(source = "thread.id", target = "id")
+    @Mapping(source = "thread.createdAt", target = "createdAt")
+    @Mapping(source = "thread.updatedAt", target = "updatedAt")
+    @Mapping(source = "thread.deletedAt", target = "deletedAt")
+    @Mapping(source = "thread.author", target = "author", qualifiedByName = "getAuthor")
+    @Mapping(source = "thread.parentThread", target = "parentThread", qualifiedByName = "getParentThread")
+    @Mapping(source = "thread", target = "content", qualifiedByName = "getContent")
+    @Mapping(source = "thread", target = "files", qualifiedByName = "getFiles")
+    @Mapping(source = "thread.sharers", target = "sharers", qualifiedByName = "getSharers")
+    @Mapping(source = "thread.reactUsers", target = "reactUsers", qualifiedByName = "getReactUsers")
+    @Mapping(source = "thread.comments", target = "commentNum", qualifiedByName = "getCommentNum")
+    @Mapping(source = "thread.comments", target = "comments", ignore = true)
+    @Mapping(source = "requestModeration", target = "requestModeration", qualifiedByName = NotificationMapper.TO_RESPONSE_NAMED)
+    @Mapping(source = "responseModeration", target = "responseModeration", qualifiedByName = NotificationMapper.TO_RESPONSE_NAMED)
+    ThreadResponse toResponseWithModeration(Thread thread, Notification requestModeration, Notification responseModeration);
 
     @Named("getAuthor")
     default AccountResponse getAuthor(Account author) {

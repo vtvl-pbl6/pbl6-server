@@ -37,4 +37,14 @@ public class ThreadController {
         threadService.denyRequestModeration(account, id);
         return null;
     }
+
+    @GetMapping
+    public Object getRequestModerateThreads() {
+        return threadService.getRequestModerateThreads();
+    }
+
+    @GetMapping("/{id}")
+    public Object getRequestModerateThreadById(@PathVariable Long id) {
+        return threadService.getRequestModerateThreadById(id);
+    }
 }

@@ -33,4 +33,6 @@ public class ThreadResponse extends AbstractDTO {
     private List<AccountResponse> sharers;
     private List<AccountResponse> reactUsers;
     private List<ThreadResponse> comments;
+    private NotificationResponse requestModeration;
+    private NotificationResponse responseModeration;
 }

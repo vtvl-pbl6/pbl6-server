@@ -24,7 +24,9 @@ import com.dut.pbl6_server.service.ThreadService;
 import com.dut.pbl6_server.task_executor.service.ContentModerationTaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,7 +69,7 @@ public class ThreadServiceImpl implements ThreadService {
                     }
                 }
 
-                if (parentThread.getStatus() == ThreadStatus.CREATING || parentThread.getStatus() == ThreadStatus.PENDING)
+                if (parentThread.getStatus() != ThreadStatus.CREATE_DONE)
                     throw new BadRequestException(ErrorMessageConstants.THREAD_PARENT_NOT_AVAILABLE);
             }
 
@@ -233,7 +235,7 @@ public class ThreadServiceImpl implements ThreadService {
             page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusNotIn(
                 List.of(authorId),
                 List.of(Visibility.PUBLIC, Visibility.FRIEND_ONLY),
-                List.of(ThreadStatus.PENDING, ThreadStatus.CREATING),
+                List.of(ThreadStatus.PENDING, ThreadStatus.CREATING, ThreadStatus.REJECTED),
                 pageable
             );
         }
@@ -243,7 +245,7 @@ public class ThreadServiceImpl implements ThreadService {
             page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusNotIn(
                 List.of(authorId),
                 List.of(Visibility.PUBLIC),
-                List.of(ThreadStatus.PENDING, ThreadStatus.CREATING),
+                List.of(ThreadStatus.PENDING, ThreadStatus.CREATING, ThreadStatus.REJECTED),
                 pageable
             );
 
@@ -264,7 +266,7 @@ public class ThreadServiceImpl implements ThreadService {
         var page = threadsFetchRepository.findAllByAuthorIdInAndVisibilityInAndStatusNotIn(
             followingUserIds,
             List.of(Visibility.PUBLIC, Visibility.FRIEND_ONLY),
-            List.of(ThreadStatus.PENDING, ThreadStatus.CREATING),
+            List.of(ThreadStatus.PENDING, ThreadStatus.CREATING, ThreadStatus.REJECTED),
             pageable
         );
         return new DataWithPage<>(
@@ -448,7 +450,7 @@ public class ThreadServiceImpl implements ThreadService {
     @Override
     public void unlockThread(Account admin, Long threadId) {
         var thread = threadsRepository.findById(threadId).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
-        if (thread.getStatus() != ThreadStatus.PENDING)
+        if (thread.getStatus() == ThreadStatus.CREATE_DONE)
             throw new NotFoundObjectException(ErrorMessageConstants.THREAD_ALREADY_UNLOCKED);
         thread.setStatus(ThreadStatus.CREATE_DONE);
         thread = threadsRepository.save(thread);
@@ -504,6 +506,32 @@ public class ThreadServiceImpl implements ThreadService {
         threadsRepository.save(thread);
         // Send notification to author
         notificationService.sendNotification(admin, thread.getAuthor(), NotificationType.REQUEST_THREAD_MODERATION_FAILED, thread, false, false);
+    }
+
+    @Override
+    public List<ThreadResponse> getRequestModerateThreads() {
+        var requestThreads = notificationsRepository.getRequestModerateThreadIds();
+        var threadIds = requestThreads.stream().map(Notification::getObjectId).toList();
+        if (CommonUtils.List.isNotEmptyOrNull(threadIds))
+            return threadsFetchRepository.findThreadsByIdInAndVisibilityInAndStatusNotIn(
+                threadIds,
+                List.of(), // All visibilities
+                List.of(), // All statuses
+                PageRequest.of(0, threadIds.size(), Sort.by("createdAt").descending())
+            ).stream().map(thread -> threadMapper.toResponseWithModeration(
+                thread,
+                requestThreads.stream().filter(e -> e.getObjectId().equals(thread.getId())).findFirst().get(),
+                null
+            )).toList();
+        return List.of();
+    }
+
+    @Override
+    public ThreadResponse getRequestModerateThreadById(Long threadId) {
+        var thread = threadsFetchRepository.findById(threadId).orElseThrow(() -> new NotFoundObjectException(ErrorMessageConstants.THREAD_NOT_FOUND));
+        var requestModerate = notificationsRepository.getRequestModerateThreadById(threadId);
+        var responseModerate = notificationsRepository.getResponseModerateThreadById(threadId);
+        return threadMapper.toResponseWithModeration(thread, requestModerate, responseModerate);
     }
 
     private Thread checkThreadVisibility(Account currentUser, Long threadId) {

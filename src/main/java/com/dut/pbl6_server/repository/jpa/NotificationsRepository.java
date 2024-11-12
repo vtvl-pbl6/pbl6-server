@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+
 public interface NotificationsRepository extends JpaRepository<Notification, Long> {
 
     /* Receiver's role:
@@ -45,4 +47,43 @@ public interface NotificationsRepository extends JpaRepository<Notification, Lon
                 AND n.deletedAt IS NULL
         """)
     boolean isAlreadyRequestModeration(Long senderId, Long threadId);
+
+    @Query("""
+            SELECT n
+            FROM Notification n
+            WHERE
+                n.type = 'REQUEST_THREAD_MODERATION'
+                AND n.deletedAt IS NULL
+                AND (
+                    SELECT COUNT(n2)
+                    FROM Notification n2
+                    WHERE
+                        n2.objectId = n.objectId
+                        AND (n2.type = 'REQUEST_THREAD_MODERATION_SUCCESS' OR n2.type = 'REQUEST_THREAD_MODERATION_FAILED')
+                        AND n2.deletedAt IS NULL
+                ) = 0
+        """)
+    List<Notification> getRequestModerateThreadIds();
+
+    @Query("""
+            SELECT n
+            FROM Notification n
+            WHERE
+                n.type = 'REQUEST_THREAD_MODERATION'
+                AND n.objectId = :threadId
+                AND n.deletedAt IS NULL
+        """)
+    Notification getRequestModerateThreadById(Long threadId);
+
+    @Query("""
+            SELECT n
+            FROM Notification n
+            WHERE
+                (n.type = 'REQUEST_THREAD_MODERATION_SUCCESS' OR n.type = 'REQUEST_THREAD_MODERATION_FAILED')
+                AND n.objectId = :threadId
+                AND n.deletedAt IS NULL
+            ORDER BY n.createdAt DESC
+            LIMIT 1
+        """)
+    Notification getResponseModerateThreadById(Long threadId);
 }

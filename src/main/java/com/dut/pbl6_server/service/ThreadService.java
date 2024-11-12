@@ -7,6 +7,8 @@ import com.dut.pbl6_server.dto.respone.ThreadResponse;
 import com.dut.pbl6_server.entity.Account;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface ThreadService {
     ThreadResponse createThread(Account currentUser, ThreadRequest request);
 
@@ -41,4 +43,8 @@ public interface ThreadService {
     void acceptRequestModeration(Account currentUser, Long threadId);
 
     void denyRequestModeration(Account currentUser, Long threadId);
+
+    List<ThreadResponse> getRequestModerateThreads();
+
+    ThreadResponse getRequestModerateThreadById(Long threadId);
 }
