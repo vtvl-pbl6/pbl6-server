@@ -59,7 +59,13 @@ public class AccountsFetchBaseRepository implements FetchBaseRepository<Account>
                     LEFT JOIN FETCH fuf.avatarFile
                     LEFT JOIN FETCH fu.user fuu
                     LEFT JOIN FETCH fuu.avatarFile
-                    WHERE fu.user IN :values AND fu.deletedAt IS NULL
+                    WHERE
+                            fu.deletedAt IS NULL
+                        AND fuf.deletedAt IS NULL
+                        AND fuf.status = 'ACTIVE'
+                        AND fuu IN :values
+                        AND fuu.deletedAt IS NULL
+                        AND fuu.status = 'ACTIVE'
                     """,
                 Follower.class)
             .setParameter("values", values)
@@ -82,7 +88,13 @@ public class AccountsFetchBaseRepository implements FetchBaseRepository<Account>
                     LEFT JOIN FETCH fuf.avatarFile
                     LEFT JOIN FETCH fu.user fuu
                     LEFT JOIN FETCH fuu.avatarFile
-                    WHERE fu.follower IN :values AND fu.deletedAt IS NULL
+                    WHERE
+                            fu.deletedAt IS NULL
+                        AND fuf IN :values
+                        AND fuf.deletedAt IS NULL
+                        AND fuf.status = 'ACTIVE'
+                        AND fuu.deletedAt IS NULL
+                        AND fuu.status = 'ACTIVE'
                     """,
                 Follower.class)
             .setParameter("values", values)

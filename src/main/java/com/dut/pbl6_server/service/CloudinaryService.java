@@ -13,4 +13,6 @@ public interface CloudinaryService {
     void deleteFiles(List<Long> ids);
 
     void deleteFileByUrl(String url);
+
+    void clearNotUsedUrl();
 }

@@ -86,6 +86,24 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         }
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public void clearNotUsedUrl() {
+        try {
+            List<String> urls = filesRepository.findAll().stream().map(File::getUrl).toList();
+            Map<?, ?> result = cloudinary.api().resources(ObjectUtils.asMap("resource_type", "image"));
+            List<Map<?, ?>> resources = (List<Map<?, ?>>) result.get("resources");
+            for (var resource : resources) {
+                String url = (String) resource.get("url");
+                String publicId = (String) resource.get("public_id");
+                if (!urls.contains(url))
+                    cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+            }
+        } catch (Exception e) {
+            throw new BadRequestException(ErrorMessageConstants.DELETE_FILE_FAILED);
+        }
+    }
+
     private String extractPublicIdFromUrl(String url) {
         String[] parts = url.split("/");
         String publicIdWithFormat = parts[parts.length - 1];

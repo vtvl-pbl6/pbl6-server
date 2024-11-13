@@ -13,10 +13,26 @@ public interface FollowersRepository extends JpaRepository<Follower, Long> {
     @Query("SELECT f FROM Follower f WHERE  f.follower.id = :followerId AND f.deletedAt IS NULL")
     List<Follower> findAllByFollowerId(Long followerId);
 
-    @Query("SELECT f.user.id FROM Follower f WHERE  f.follower.id = :followerId AND f.deletedAt IS NULL")
+    @Query("""
+            SELECT f.user.id
+            FROM Follower f
+            WHERE
+                    f.follower.id = :followerId
+                AND f.deletedAt IS NULL
+                AND f.user.status = 'ACTIVE'
+                AND f.user.deletedAt IS NULL
+        """)
     Page<Long> findFollowingUserIds(Long followerId, Pageable pageable);
 
-    @Query("SELECT f.follower.id FROM Follower f WHERE  f.user.id = :userId AND f.deletedAt IS NULL")
+    @Query("""
+            SELECT f.follower.id
+            FROM Follower f
+            WHERE
+                    f.user.id = :userId
+                AND f.deletedAt IS NULL
+                AND f.follower.status = 'ACTIVE'
+                AND f.follower.deletedAt IS NULL
+        """)
     Page<Long> findFollowerIds(Long userId, Pageable pageable);
 
     Optional<Follower> findByFollowerIdAndUserId(Long followerId, Long userId);
