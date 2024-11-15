@@ -12,12 +12,8 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 public class ResponseEntityAspect {
-    @Pointcut("execution(* com.dut.pbl6_server.controller.*.*(..))")
-    public void level1Controller() {
-    }
-
-    @Pointcut("execution(* com.dut.pbl6_server.controller.*.*.*(..))")
-    public void level2Controller() {
+    @Pointcut("execution(* com.dut.pbl6_server.controller..*.*(..))")
+    public void controllers() {
     }
 
     @Pointcut("@annotation(com.dut.pbl6_server.annotation.aspect.SkipHttpResponseWrapper)")
@@ -28,7 +24,7 @@ public class ResponseEntityAspect {
     public void messageMapping() {
     }
 
-    @Around("(level1Controller() || level2Controller()) && !skipAnnotation() && !messageMapping()")
+    @Around("controllers() && !skipAnnotation() && !messageMapping()")
     public ResponseEntity<AbstractResponse> modifyResponseAfterController(ProceedingJoinPoint joinPoint) throws Throwable {
         var val = joinPoint.proceed();
         AbstractResponse response = null;

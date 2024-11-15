@@ -157,7 +157,8 @@ public class ThreadServiceImpl implements ThreadService {
                 // Delete files from cloudinary and database
                 cloudinaryService.deleteFiles(request.getDeleteFileIds());
             }
-            needUpdateThread.setVisibility(request.getVisibility());
+            if (request.getVisibility() != null)
+                needUpdateThread.setVisibility(request.getVisibility());
             needUpdateThread.setHosResult(null); // Reset hos result
             needUpdateThread.setStatus(ThreadStatus.CREATING); // Change status to creating to moderate the content and files
             threadsRepository.save(needUpdateThread);

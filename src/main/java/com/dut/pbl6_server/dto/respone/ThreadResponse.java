@@ -5,6 +5,7 @@ import com.dut.pbl6_server.common.model.AbstractDTO;
 import com.dut.pbl6_server.entity.File;
 import com.dut.pbl6_server.entity.enums.ThreadStatus;
 import com.dut.pbl6_server.entity.enums.Visibility;
+import com.dut.pbl6_server.entity.json.HosResult;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,4 +36,5 @@ public class ThreadResponse extends AbstractDTO {
     private List<ThreadResponse> comments;
     private NotificationResponse requestModeration;
     private NotificationResponse responseModeration;
+    private List<HosResult> hosResults;
 }

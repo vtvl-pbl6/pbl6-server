@@ -17,11 +17,11 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class LoggingAspect {
     private static final Logger logger = LoggerFactory.getLogger(LoggingAspect.class);
 
-    @Pointcut("within(@org.springframework.web.bind.annotation.RestController *)")
-    public void controllerMethods() {
+    @Pointcut("execution(* com.dut.pbl6_server.controller..*.*(..))")
+    public void controllers() {
     }
 
-    @Before("controllerMethods()")
+    @Before("controllers()")
     public void logClientInfo(JoinPoint joinPoint) {
         // Get the HTTP request object
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
