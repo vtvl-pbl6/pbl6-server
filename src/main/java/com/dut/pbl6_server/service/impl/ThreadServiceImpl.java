@@ -489,6 +489,8 @@ public class ThreadServiceImpl implements ThreadService {
             throw new BadRequestException(ErrorMessageConstants.THREAD_ALREADY_ACCEPTED);
         // Update thread's status
         thread.setStatus(ThreadStatus.CREATE_DONE);
+        thread.setHosResult(null);
+        threadFilesRepository.removeNsfwResultForFile(threadId);
         threadsRepository.save(thread);
         // Send notification to author
         notificationService.sendNotification(admin, thread.getAuthor(), NotificationType.REQUEST_THREAD_MODERATION_SUCCESS, thread, false, false);
