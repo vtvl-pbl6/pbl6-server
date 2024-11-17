@@ -148,6 +148,9 @@ delete_file_failed:
 file_size_limit_exceeded:
   code: ERR_FIL0104
   message: Kích thước tệp tin quá lớn, phải nhỏ hơn 100MB!
+file_type_not_supported:
+  code: ERR_FIL0105
+  message: Ở version hiện tại, chúng tôi không hỗ trợ loại tệp tin này!
 
 # Thread
 thread_not_found:

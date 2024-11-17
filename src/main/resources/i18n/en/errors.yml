@@ -148,6 +148,9 @@ delete_file_failed:
 file_size_limit_exceeded:
   code: ERR_FIL0104
   message: File size must be less than 100MB!
+file_type_not_supported:
+  code: ERR_FIL0105
+  message: In this version, we only support image files!
 
 # Thread
 thread_not_found:

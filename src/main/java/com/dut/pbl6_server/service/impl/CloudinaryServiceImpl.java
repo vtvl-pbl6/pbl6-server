@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
 
     @Override
     public File uploadFile(MultipartFile file) {
+        checkImage(file);
         try {
             Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
             return filesRepository.save(
@@ -41,6 +43,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
 
     @Override
     public List<File> uploadFiles(List<MultipartFile> files) {
+        files.forEach(this::checkImage);
         try {
             if (CommonUtils.List.isEmptyOrNull(files)) return List.of();
             List<File> tmp = new ArrayList<>();
@@ -108,5 +111,11 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         String[] parts = url.split("/");
         String publicIdWithFormat = parts[parts.length - 1];
         return publicIdWithFormat.substring(0, publicIdWithFormat.lastIndexOf('.'));
+    }
+
+    private void checkImage(MultipartFile file) {
+        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
+            throw new BadRequestException(ErrorMessageConstants.FILE_TYPE_NOT_SUPPORTED);
+        }
     }
 }

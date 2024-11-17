@@ -22,6 +22,7 @@ public final class ErrorMessageConstants {
     public static final String FILE_NOT_FOUND = "file_not_found";
     public static final String DELETE_FILE_FAILED = "delete_file_failed";
     public static final String FILE_SIZE_LIMIT_EXCEEDED = "file_size_limit_exceeded";
+    public static final String FILE_TYPE_NOT_SUPPORTED = "file_type_not_supported";
 
     /**
      * Authentication
