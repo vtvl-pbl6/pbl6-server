@@ -71,7 +71,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public DataWithPage<AccountResponse> searchUser(Account currentUser, String displayName, Pageable pageable) {
-        var page = accountsFetchRepository.searchByDisplayName(displayName, pageable);
+        var page = accountsFetchRepository.searchByDisplayName(displayName, currentUser.getDisplayName(), pageable);
         return DataWithPage.<AccountResponse>builder()
             .data(page.getContent().stream().map(e ->
                 accountMapper.toUserInfoResponse(e, followersRepository.isFollowing(e.getId(), currentUser.getId()))).toList()

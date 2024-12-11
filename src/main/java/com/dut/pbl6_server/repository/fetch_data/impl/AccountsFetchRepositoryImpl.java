@@ -29,10 +29,11 @@ public class AccountsFetchRepositoryImpl implements AccountsFetchRepository {
     }
 
     @Override
-    public Page<Account> searchByDisplayName(String displayName, Pageable pageable) {
+    public Page<Account> searchByDisplayName(String displayName, String currentDisplayName, Pageable pageable) {
         return fetchBaseRepository.fetchAllDataWithPagination(
             List.of(
                 new WhereElement("displayName", "%" + displayName.toLowerCase() + "%", WhereOperator.LIKE, List.of(WhereFieldOperator.LOWER)),
+                new WhereElement("displayName", currentDisplayName, WhereOperator.NOT_EQUAL),
                 new WhereElement("role", AccountRole.ADMIN, WhereOperator.NOT_EQUAL),
                 new WhereElement("visibility", Visibility.PUBLIC, WhereOperator.EQUAL, null, WhereLogical.START_GROUP_WITH_OR),
                 new WhereElement("visibility", Visibility.FRIEND_ONLY, WhereOperator.EQUAL, null, WhereLogical.END_GROUP_WITH_AND),

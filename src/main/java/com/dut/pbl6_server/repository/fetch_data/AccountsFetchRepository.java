@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AccountsFetchRepository extends FetchRepository<Account, Long, FetchBaseRepository<Account>> {
-    Page<Account> searchByDisplayName(String displayName, Pageable pageable);
+    Page<Account> searchByDisplayName(String displayName, String currentDisplayName, Pageable pageable);
 
     List<Account> getUserAccounts();
 
