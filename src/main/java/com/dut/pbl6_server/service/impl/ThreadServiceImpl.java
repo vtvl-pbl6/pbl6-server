@@ -105,7 +105,7 @@ public class ThreadServiceImpl implements ThreadService {
 
             // Send comment notification to all subscribers
             if (parentThread != null)
-                notificationId = notificationService.sendNotification(currentUser, null, NotificationType.COMMENT, createdThread, false, true).getId();
+                notificationId = notificationService.sendNotification(currentUser, parentThread.getAuthor(), NotificationType.COMMENT, createdThread, false, true).getId();
 
             return threadMapper.toResponseWithoutComments(createdThread);
         } catch (Exception ex) {
@@ -410,7 +410,7 @@ public class ThreadServiceImpl implements ThreadService {
         thread.setSharers(List.of(sharer));
 
         // Send notification to all subscribers
-        notificationService.sendNotification(currentUser, null, NotificationType.SHARE, thread, false, true);
+        notificationService.sendNotification(currentUser, thread.getAuthor(), NotificationType.SHARE, thread, false, true);
     }
 
     @Override
