@@ -15,7 +15,6 @@ import com.dut.pbl6_server.entity.enums.AccountStatus;
 import com.dut.pbl6_server.mapper.AccountMapper;
 import com.dut.pbl6_server.repository.fetch_data.AccountsFetchRepository;
 import com.dut.pbl6_server.repository.jpa.AccountsRepository;
-import com.dut.pbl6_server.repository.jpa.FilesRepository;
 import com.dut.pbl6_server.repository.jpa.FollowersRepository;
 import com.dut.pbl6_server.service.AccountService;
 import com.dut.pbl6_server.service.CloudinaryService;
@@ -37,7 +36,6 @@ public class AccountServiceImpl implements AccountService {
     private final AccountMapper accountMapper;
     private final NotificationService notificationService;
     private final CloudinaryService cloudinaryService;
-    private final FilesRepository filesRepository;
 
     @Override
     public AccountResponse getAccountInfo(Account currentUser) {
