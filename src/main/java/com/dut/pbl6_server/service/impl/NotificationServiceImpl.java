@@ -49,9 +49,9 @@ public class NotificationServiceImpl implements NotificationService {
         String... args
     ) {
         // Check if sender and receiver are the same
-        if (sender != null && receiver != null && sender.getEmail().equals(receiver.getEmail())) {
-            throw new BadRequestException(ErrorMessageConstants.NOTIFICATION_CANT_SEND_TO_YOURSELF);
-        }
+        boolean isSaveToDatabase = type.isSaveToDatabase();
+        if (sender != null && receiver != null && sender.getEmail().equals(receiver.getEmail()))
+            isSaveToDatabase = false;
 
         // Get content of notification in default language in order to save it to database
         String savedContent = getContent(type, sender, LocaleLanguage.VI.getValue(), object, false, args);
@@ -72,7 +72,7 @@ public class NotificationServiceImpl implements NotificationService {
             .objectId(object != null ? object.getId() : null)
             .type(type.name())
             .build();
-        var newNotification = type.isSaveToDatabase()
+        var newNotification = isSaveToDatabase
             ? notificationsRepository.save(notification)
             : notification;
         newNotification.setContent(receiverContent); // Set content in receiver's language
@@ -80,10 +80,10 @@ public class NotificationServiceImpl implements NotificationService {
 
         // Send notification (via WebSocket) to specific subscriber if receiver is not null else send to all subscribers
         try {
-            if (receiver != null)
+            if (receiver != null && !publicUserFlag && !publicAdminFlag)
                 webSocketUtils.sendToSubscriber(
                     receiver.getEmail(),
-                    WebSocketDestination.getDestination(type, receiver.getRole(), publicAdminFlag, publicUserFlag),
+                    WebSocketDestination.getDestination(type, receiver.getRole(), false, false),
                     response
                 );
             else
