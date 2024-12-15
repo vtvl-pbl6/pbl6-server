@@ -138,8 +138,11 @@ public class ThreadServiceImpl implements ThreadService {
                 throw new BadRequestException(ErrorMessageConstants.FORBIDDEN_ACTION);
 
             // Update the thread
-            if (CommonUtils.String.isNotEmptyOrNull(request.getContent()))
+            if (CommonUtils.String.isNotEmptyOrNull(request.getContent())) {
                 needUpdateThread.setContent(request.getContent());
+                needUpdateThread.setStatus(ThreadStatus.CREATING); // Change status to creating to moderate the content and files
+                needUpdateThread.setHosResult(null); // Reset hos result
+            }
             if (CommonUtils.List.isNotEmptyOrNull(request.getDeleteFileIds())) {
                 // Delete thread files
                 threadFilesRepository.deleteAllById(needUpdateThread.getFiles().stream()
@@ -159,10 +162,7 @@ public class ThreadServiceImpl implements ThreadService {
             }
             if (request.getVisibility() != null)
                 needUpdateThread.setVisibility(request.getVisibility());
-            needUpdateThread.setHosResult(null); // Reset hos result
-            needUpdateThread.setStatus(ThreadStatus.CREATING); // Change status to creating to moderate the content and files
             threadsRepository.save(needUpdateThread);
-
 
             // Moderate the content and files
             if (CommonUtils.String.isNotEmptyOrNull(request.getContent()) || CommonUtils.List.isNotEmptyOrNull(request.getFiles()))
