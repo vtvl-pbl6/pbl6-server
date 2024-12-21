@@ -114,6 +114,6 @@ public class Account extends AbstractEntity implements UserDetails {
     // Account is active or inactive
     @Override
     public boolean isEnabled() {
-        return getDeletedAt() == null;
+        return status == AccountStatus.ACTIVE;
     }
 }

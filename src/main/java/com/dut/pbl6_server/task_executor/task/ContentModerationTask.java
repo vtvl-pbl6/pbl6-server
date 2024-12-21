@@ -7,7 +7,6 @@ import com.dut.pbl6_server.config.httpclient.HttpClientConfig;
 import com.dut.pbl6_server.config.httpclient.HttpMethod;
 import com.dut.pbl6_server.entity.File;
 import com.dut.pbl6_server.task_executor.BaseTask;
-import com.dut.pbl6_server.task_executor.ContentModerationResult;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
@@ -76,47 +75,51 @@ public class ContentModerationTask extends BaseTask<ContentModerationResult> {
                 ).execute();
 
                 String responseBody = execute.body() != null ? execute.body().string() : null;
-                log.info(String.format("[%s] - %s: \n%s", Thread.currentThread().getName(), url, responseBody)); // Log the response body
+                log.info(String.format("%s\n%s", url, responseBody)); // Log the response body
                 AbstractResponse response = CommonUtils.Json.decode(responseBody, AbstractResponse.class);
                 isTextModeratedDone = true;
-                onDone.call(new ContentModerationResult(response, true, isImageModeratedDone)); // Notify the caller
+                onDone.call(new ContentModerationResult(response, true, false)); // Notify the caller
             } catch (Exception e) {
                 log.error("Error while processing text: " + e.getMessage());
+                isTextModeratedDone = true;
             }
         }
 
         // Handle the files
         if (CommonUtils.List.isNotEmptyOrNull(files)) {
-            // TODO: Implement file processing
             try {
-//                // Prepare the request body
-//                var requestBody = RequestBody.create(
-//                    Objects.requireNonNull(CommonUtils.Json.encode(Map.of(
-//                        "files", files.stream().map(File::getUrl).toList(),
-//                        "key", accessKey
-//                    ))),
-//                    MediaType.parse("application/json"));
-//
-//
-//                // Send the request to the content moderation server
-//                var execute = httpClient.newCall(httpClientConfig.getRequest(
-//                    getUrl(serverUrl, false),
-//                    HttpMethod.POST,
-//                    requestBody,
-//                    null)
-//                ).execute();
-//
-//                String responseBody = execute.body() != null ? execute.body().string() : null;
-//                AbstractResponse response = CommonUtils.Json.decode(responseBody, AbstractResponse.class);
-                onDone.call(new ContentModerationResult(null, isTextModeratedDone, true)); // Notify the caller
+                var url = getUrl(serverUrl, false);
+                // Prepare the request body
+                var requestBody = RequestBody.create(
+                    Objects.requireNonNull(CommonUtils.Json.encode(Map.of(
+                        "img_urls", files.stream().map(File::getUrl).toList(),
+                        "key", accessKey
+                    ))),
+                    MediaType.parse("application/json"));
+
+                // Send the request to the content moderation server
+                var execute = httpClient.newCall(httpClientConfig.getRequest(
+                    url,
+                    HttpMethod.POST,
+                    requestBody,
+                    null)
+                ).execute();
+
+                String responseBody = execute.body() != null ? execute.body().string() : null;
+                log.info(String.format("%s\n%s", url, responseBody)); // Log the response body
+                AbstractResponse response = CommonUtils.Json.decode(responseBody, AbstractResponse.class);
+                isImageModeratedDone = true;
+                onDone.call(new ContentModerationResult(response, false, true)); // Notify the caller
             } catch (Exception e) {
                 log.error("Error while processing file: " + e.getMessage());
+                isImageModeratedDone = true;
             }
         }
+
+        onDone.call(new ContentModerationResult(null, isTextModeratedDone, isImageModeratedDone));
     }
 
-    // TODO: Implement url for image
     private static String getUrl(String serverUrl, boolean isText) {
-        return serverUrl + (isText ? "/hate-speech-text-span" : "");
+        return serverUrl + (isText ? "/hate-speech-text-span" : "/nsfw");
     }
 }

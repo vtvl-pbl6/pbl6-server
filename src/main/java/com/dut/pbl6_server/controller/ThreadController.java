@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController("PostController")
 @RequestMapping("/api/v1/thread")
@@ -63,6 +64,78 @@ public class ThreadController {
         if (CommonUtils.String.isEmptyOrNull(content) && CommonUtils.List.isEmptyOrNull(files))
             throw new BadRequestException(ErrorMessageConstants.THREAD_REQUEST_INVALID);
         var visibilityEnum = CommonUtils.stringToEnum(visibility, Visibility.class);
-        return threadService.createThread(account, new ThreadRequest(content, parentId, files, visibilityEnum));
+        return threadService.createThread(
+            account,
+            ThreadRequest.builder()
+                .content(content)
+                .files(files)
+                .parentId(parentId)
+                .visibility(visibilityEnum)
+                .build()
+        );
+    }
+
+    @PutMapping("{id}")
+    public Object updateThread(
+        @CurrentAccount Account account,
+        @PathVariable Long id,
+        @RequestBody ThreadRequest request
+    ) {
+        request.setCurrentThreadId(id);
+        return threadService.updateThread(account, request);
+    }
+
+    @DeleteMapping("/{threadId}")
+    public Object deleteThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        threadService.deleteThread(account, threadId);
+        return null;
+    }
+
+    @PostMapping("/{threadId}/share")
+    public Object shareThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        threadService.shareThread(account, threadId);
+        return null;
+    }
+
+    @PostMapping("/{threadId}/unshared")
+    public Object unsharedThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        threadService.unsharedThread(account, threadId);
+        return null;
+    }
+
+    @PatchMapping("/{threadId}/like")
+    public Object likeThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        threadService.likeThread(account, threadId);
+        return null;
+    }
+
+    @PatchMapping("/{threadId}/unlike")
+    public Object unlikeThread(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId
+    ) {
+        threadService.unlikeThread(account, threadId);
+        return null;
+    }
+
+    @PostMapping("/{threadId}/moderation/request")
+    public Object requestThreadModeration(
+        @CurrentAccount Account account,
+        @PathVariable Long threadId,
+        @RequestBody Map<String, String> body
+    ) {
+        return threadService.requestThreadModeration(account, threadId, body.get("reason"));
     }
 }

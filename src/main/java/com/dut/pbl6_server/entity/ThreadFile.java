@@ -16,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @Table(name = "thread_files")
 public class ThreadFile extends AbstractEntity {
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "thread_id", nullable = false)
     private Thread thread;
 

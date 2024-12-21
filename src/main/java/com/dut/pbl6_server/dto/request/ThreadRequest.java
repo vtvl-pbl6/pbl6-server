@@ -16,8 +16,10 @@ import java.util.List;
 @Builder
 @JsonSnakeCaseNaming
 public class ThreadRequest {
+    private Long currentThreadId;
     private String content;
     private Long parentId;
     private List<MultipartFile> files;
     private Visibility visibility;
+    private List<Long> deleteFileIds;
 }

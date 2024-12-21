@@ -1,5 +1,6 @@
 package com.dut.pbl6_server.service;
 
+import com.dut.pbl6_server.dto.request.ChangePasswordRequest;
 import com.dut.pbl6_server.dto.request.LoginRequest;
 import com.dut.pbl6_server.dto.request.RefreshTokenRequest;
 import com.dut.pbl6_server.dto.request.RegisterRequest;
@@ -17,4 +18,6 @@ public interface AuthService {
     void revokeToken(Account account, boolean isAdmin);
 
     AccountResponse register(RegisterRequest registerRequest);
+
+    void changePassword(Account account, ChangePasswordRequest request);
 }

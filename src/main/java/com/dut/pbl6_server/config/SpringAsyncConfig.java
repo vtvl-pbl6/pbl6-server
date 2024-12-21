@@ -15,7 +15,7 @@ public class SpringAsyncConfig {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(poolSize);
         executor.setMaxPoolSize(poolSize);
-        executor.setQueueCapacity(25);
+        executor.setQueueCapacity(Integer.MAX_VALUE);
         executor.setThreadNamePrefix("ContentModerationAsyncExecutor-");
         executor.setWaitForTasksToCompleteOnShutdown(true);  // Ensures tasks complete on shutdown
         executor.setAwaitTerminationSeconds(900); // 15 minutes

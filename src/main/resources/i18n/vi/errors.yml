@@ -23,6 +23,9 @@ invalid_uuid:
 invalid_enum:
   code: ERR_REQ0103
   message: Enum không hợp lệ!
+forbidden_action:
+  code: ERR_REQ0104
+  message: Bạn không có quyền thực hiện hành động này!
 
 # Authentication
 api_key_is_required:
@@ -67,6 +70,27 @@ username_already_exists:
 email_already_exists:
   code: ERR_EMA0102
   message: Email đã được sử dụng!
+account_is_not_available:
+  code: ERR_ACC0109
+  message: Tài khoản không khả dụng!
+cannot_follow_yourself:
+  code: ERR_ACC0110
+  message: Bạn không thể theo dõi chính mình!
+cannot_unfollow_yourself:
+  code: ERR_ACC0111
+  message: Bạn không thể bỏ theo dõi chính mình!
+already_followed:
+  code: ERR_ACC0112
+  message: Bạn đã theo dõi người dùng này!
+cannot_follow_admin:
+  code: ERR_ACC0113
+  message: Bạn không thể theo dõi người quản trị!
+cannot_unfollow_admin:
+  code: ERR_ACC0114
+  message: Bạn không thể bỏ theo dõi người quản trị!
+already_unfollowed:
+  code: ERR_ACC0115
+  message: Bạn đã bỏ theo dõi người dùng này!
 
 # Permission
 permission_not_found:
@@ -98,6 +122,18 @@ account_is_not_active:
 account_id_is_required:
   code: ERR_ACC0108
   message: Yêu cầu phải có id tài khoản!
+cannot_action_admin_account:
+  code: ERR_ACC0116
+  message: Bạn không thể thực hiện hành động này với tài khoản quản trị!
+already_active:
+  code: ERR_ACC0117
+  message: Tài khoản này đã được kích hoạt!
+already_inactive:
+  code: ERR_ACC0118
+  message: Tài khoản này đã bị vô hiệu hóa!
+avatar_is_required:
+  code: ERR_ACC0119
+  message: Yêu cầu phải có ảnh đại diện!
 
 # File
 upload_file_failed:
@@ -112,6 +148,9 @@ delete_file_failed:
 file_size_limit_exceeded:
   code: ERR_FIL0104
   message: Kích thước tệp tin quá lớn, phải nhỏ hơn 100MB!
+file_type_not_supported:
+  code: ERR_FIL0105
+  message: Ở version hiện tại, chúng tôi không hỗ trợ loại tệp tin này!
 
 # Thread
 thread_not_found:
@@ -132,8 +171,58 @@ thread_parent_not_available:
 private_thread_can_not_have_comment:
   code: ERR_THR0106
   message: Bạn không thể bình luận vào bài viết đang ở chế độ riêng tư!
+thread_liked:
+  code: ERR_THR0107
+  message: Bạn đã thích bài viết này!
+thread_unliked:
+  code: ERR_THR0108
+  message: Bạn đã bỏ thích bài viết này!
+cannot_share_your_own_thread:
+  code: ERR_THR0109
+  message: Bạn không thể chia sẻ bài viết của chính mình!
+cannot_unshared_your_own_thread:
+  code: ERR_THR0110
+  message: Bạn không thể bỏ chia sẻ bài viết của chính mình!
+already_shared:
+  code: ERR_THR0111
+  message: Bạn đã chia sẻ bài viết này!
+already_unshared:
+  code: ERR_THR0112
+  message: Bạn đã bỏ chia sẻ bài viết này!
+thread_update_request_invalid:
+  code: ERR_THR0113
+  message: Yêu cầu cập nhật bài viết không hợp lệ!
+cannot_change_visibility_of_comment:
+  code: ERR_THR0114
+  message: Bạn không thể thay đổi trạng thái hiển thị của bình luận!
+thread_already_locked:
+  code: ERR_THR0116
+  message: Bài viết đã bị khóa!
+thread_already_unlocked:
+  code: ERR_THR0117
+  message: Bài viết đã được mở khóa!
+request_reason_is_not_empty:
+  code: ERR_THR0118
+  message: Lý do không được để trống!
+thread_already_accepted:
+  code: ERR_THR0119
+  message: Bài viết đã được chấp nhận!
+thread_already_rejected:
+  code: ERR_THR0120
+  message: Bài viết đã bị từ chối!
+thread_already_requested:
+  code: ERR_THR0121
+  message: Yêu cầu kiểm duyệt bài viết đã được gửi!
 
 # Repost
 repost_not_found:
   code: ERR_REP0101
   message: Bạn không có bài đăng lại nào!
+
+# Change Password
+new_password_must_be_different:
+  code: ERR_CHA0101
+  message: Mật khẩu mới phải khác mật khẩu cũ!
+incorrect_old_password:
+  code: ERR_CHA0102
+  message: Mật khẩu cũ không chính xác!

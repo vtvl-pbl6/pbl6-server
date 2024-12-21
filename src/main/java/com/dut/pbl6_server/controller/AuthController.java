@@ -1,6 +1,8 @@
 package com.dut.pbl6_server.controller;
 
 import com.dut.pbl6_server.annotation.auth.CurrentAccount;
+import com.dut.pbl6_server.annotation.auth.PreAuthorizeUser;
+import com.dut.pbl6_server.dto.request.ChangePasswordRequest;
 import com.dut.pbl6_server.dto.request.LoginRequest;
 import com.dut.pbl6_server.dto.request.RefreshTokenRequest;
 import com.dut.pbl6_server.dto.request.RegisterRequest;
@@ -30,6 +32,7 @@ public class AuthController {
     }
 
     @PostMapping("/revoke-token")
+    @PreAuthorizeUser
     public Object revokeToken(@CurrentAccount Account account) {
         authService.revokeToken(account, false);
         return null;
@@ -38,5 +41,12 @@ public class AuthController {
     @PostMapping("/register")
     public Object register(@Valid @RequestBody RegisterRequest registerRequest) {
         return authService.register(registerRequest);
+    }
+
+    @PostMapping("/password/change")
+    @PreAuthorizeUser
+    public Object changePassword(@CurrentAccount Account account, @Valid @RequestBody ChangePasswordRequest request) {
+        authService.changePassword(account, request);
+        return null;
     }
 }

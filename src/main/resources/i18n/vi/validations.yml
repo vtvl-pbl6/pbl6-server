@@ -33,9 +33,32 @@ register_request:
       code: VAL_LOG0103
       message: Mật khẩu là bắt buộc. Mật khẩu phải từ 8 đến 32 ký tự, chứa ít nhất 1 chữ cái viết hoa, 1 chữ cái viết thường, 1 ký tự số.
   username:
-    not_blank:
+    username_validation:
       code: VAL_RES0104
-      message: Tên người dùng không được để trống
-    size:
-      code: VAL_RES105
       message: Tên người dùng phải dài hơn 5 ký tự
+
+# Change password request
+change_password_request:
+  old_password:
+    password_validation:
+      code: VAL_CHP0101
+      message: Mật khẩu hiện tại là bắt buộc. Mật khẩu phải từ 8 đến 32 ký tự, chứa ít nhất 1 chữ cái viết hoa, 1 chữ cái viết thường, 1 ký tự số.
+  new_password:
+    password_validation:
+      code: VAL_CHP0102
+      message: Mật khẩu mới là bắt buộc. Mật khẩu phải từ 8 đến 32 ký tự, chứa ít nhất 1 chữ cái viết hoa, 1 chữ cái viết thường, 1 ký tự số.
+  confirm_password:
+    password_validation:
+      code: VAL_CHP0103
+      message: Xác nhận mật khẩu là bắt buộc. Mật khẩu phải từ 8 đến 32 ký tự, chứa ít nhất 1 chữ cái viết hoa, 1 chữ cái viết thường, 1 ký tự số.
+
+# Notification request
+notification_request:
+  receiver_id:
+    not_null:
+      code: VAL_NOT0101
+      message: Người nhận không được để trống
+  content:
+    not_blank_string_validation:
+      code: VAL_NOT0102
+      message: Nội dung không được để trống

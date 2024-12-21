@@ -1,6 +1,7 @@
 package com.dut.pbl6_server.entity;
 
 import com.dut.pbl6_server.common.model.AbstractEntity;
+import com.dut.pbl6_server.entity.json.Nsfw;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,5 +34,5 @@ public class File extends AbstractEntity {
     private String mimeType;
 
     @Type(JsonBinaryType.class)
-    private Object nsfwResult;
+    private Nsfw nsfwResult;
 }

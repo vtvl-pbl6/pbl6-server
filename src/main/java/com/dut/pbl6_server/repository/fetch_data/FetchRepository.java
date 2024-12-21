@@ -15,7 +15,10 @@ public interface FetchRepository<T, ID, K extends FetchBaseRepository<T>> {
 
     default Optional<T> findById(ID id) {
         return getRepository().fetchAllDataWithoutPagination(
-                List.of(new WhereElement("id", id, WhereOperator.EQUAL)),
+                List.of(
+                    new WhereElement("id", id, WhereOperator.EQUAL),
+                    new WhereElement("deletedAt", null, WhereOperator.IS_NULL)
+                ),
                 null)
             .stream().findFirst();
     }
@@ -24,11 +27,11 @@ public interface FetchRepository<T, ID, K extends FetchBaseRepository<T>> {
         return getRepository().fetchAllDataWithoutPagination(null, null);
     }
 
-    default Page<T> findAll(Pageable pageable, String... relationships) {
+    default Page<T> findAll(Pageable pageable) {
         return getRepository().fetchAllDataWithPagination(null, pageable);
     }
 
-    default List<T> findAll(Sort sort, String... relationships) {
+    default List<T> findAll(Sort sort) {
         return getRepository().fetchAllDataWithoutPagination(null, sort);
     }
 }

@@ -1,4 +1,4 @@
-package com.dut.pbl6_server.task_executor;
+package com.dut.pbl6_server.task_executor.task;
 
 import com.dut.pbl6_server.common.model.AbstractResponse;
 import lombok.*;

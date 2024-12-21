@@ -2,6 +2,7 @@ package com.dut.pbl6_server.repository.fetch_data.base.impl;
 
 import com.dut.pbl6_server.entity.Thread;
 import com.dut.pbl6_server.entity.ThreadFile;
+import com.dut.pbl6_server.entity.ThreadReactUser;
 import com.dut.pbl6_server.repository.fetch_data.base.FetchBaseRepository;
 import com.dut.pbl6_server.repository.fetch_data.base.custom_model.WhereElement;
 import jakarta.persistence.EntityManager;
@@ -14,9 +15,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
+@Component("ThreadsFetchBaseRepositoryV2")
 @RequiredArgsConstructor
-public class ThreadsFetchBaseRepository implements FetchBaseRepository<Thread> {
+public class ThreadsFetchBaseRepositoryV2 implements FetchBaseRepository<Thread> {
     @PersistenceContext
     private EntityManager em;
 
@@ -36,9 +37,6 @@ public class ThreadsFetchBaseRepository implements FetchBaseRepository<Thread> {
         return em;
     }
 
-    /*
-     * NOTE: With data in 'parentThread' relation and 'comments' relation, only fetch data in 1st level
-     */
     @Override
     public Object fetchAllDataImplementation(List<WhereElement> whereElements, Sort sort, Pageable pageable) {
         // Base query with 'sharers' relation
@@ -67,13 +65,13 @@ public class ThreadsFetchBaseRepository implements FetchBaseRepository<Thread> {
                     SELECT tf
                     FROM ThreadFile tf
                     LEFT JOIN FETCH tf.file
-                    WHERE tf.thread in :values
+                    WHERE tf.thread IN :values
                     """,
                 ThreadFile.class)
             .setParameter("values", values)
             .getResultList();
 
-        values = values.stream().peek(
+        values = values.stream().peek( // Set 'files' for each thread
             v -> v.setFiles(
                 files.stream().filter(
                     tmp -> tmp.getThread().getId().equals(v.getId())
@@ -81,24 +79,25 @@ public class ThreadsFetchBaseRepository implements FetchBaseRepository<Thread> {
             )
         ).toList();
 
-        // Fetch 'comments' relation (1st level)
-        var comments = em.createQuery(
+        // Fetch 'react users' relation for threads
+        var reactUsers = em.createQuery(
                 """
-                    SELECT t
-                    FROM Thread t
-                    LEFT JOIN FETCH t.author ta
-                    LEFT JOIN FETCH ta.avatarFile
-                    LEFT JOIN FETCH t.files
-                    WHERE t.parentThread in :values
+                    SELECT tru
+                    FROM ThreadReactUser tru
+                    LEFT JOIN FETCH tru.user
+                    LEFT JOIN FETCH tru.user.avatarFile
+                    WHERE
+                        tru.thread IN :threads
+                        AND tru.deletedAt IS NULL
                     """,
-                Thread.class)
-            .setParameter("values", values)
+                ThreadReactUser.class)
+            .setParameter("threads", values)
             .getResultList();
 
-        values = values.stream().peek(
-            v -> v.setComments(
-                comments.stream().filter(
-                    tmp -> tmp.getParentThread().getId().equals(v.getId())
+        values = values.stream().peek( // Set 'react users' for each thread
+            v -> v.setReactUsers(
+                reactUsers.stream().filter(
+                    tmp -> tmp.getThread().getId().equals(v.getId())
                 ).toList()
             )
         ).toList();

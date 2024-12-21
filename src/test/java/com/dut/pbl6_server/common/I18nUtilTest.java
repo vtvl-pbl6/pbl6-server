@@ -22,10 +22,9 @@ public class I18nUtilTest {
         );
 
         try (MockedStatic<I18nUtils> mocked = Mockito.mockStatic(I18nUtils.class)) {
-            mocked.when(() -> I18nUtils.getValueFromYAMLFile(LocaleLanguage.EN, localeFile))
-                .thenReturn(mockYAMLData);
-
             mocked.when(I18nUtils::getCurrentLanguage).thenCallRealMethod();
+            mocked.when(() -> I18nUtils.getValueFromYAMLFile(I18nUtils.getCurrentLanguage(), localeFile))
+                .thenReturn(mockYAMLData);
             mocked.when(() -> I18nUtils.tr(key, localeFile)).thenCallRealMethod();
 
             // Act
@@ -46,10 +45,9 @@ public class I18nUtilTest {
         );
 
         try (MockedStatic<I18nUtils> mocked = Mockito.mockStatic(I18nUtils.class)) {
-            mocked.when(() -> I18nUtils.getValueFromYAMLFile(LocaleLanguage.EN, localeFile))
-                .thenReturn(mockYAMLData);
-
             mocked.when(I18nUtils::getCurrentLanguage).thenCallRealMethod();
+            mocked.when(() -> I18nUtils.getValueFromYAMLFile(I18nUtils.getCurrentLanguage(), localeFile))
+                .thenReturn(mockYAMLData);
             mocked.when(() -> I18nUtils.tr(key, localeFile)).thenCallRealMethod();
 
             // Act
@@ -71,10 +69,9 @@ public class I18nUtilTest {
         );
 
         try (MockedStatic<I18nUtils> mocked = Mockito.mockStatic(I18nUtils.class)) {
-            mocked.when(() -> I18nUtils.getValueFromYAMLFile(LocaleLanguage.EN, localeFile))
-                .thenReturn(mockYAMLData);
-
             mocked.when(I18nUtils::getCurrentLanguage).thenCallRealMethod();
+            mocked.when(() -> I18nUtils.getValueFromYAMLFile(I18nUtils.getCurrentLanguage(), localeFile))
+                .thenReturn(mockYAMLData);
             mocked.when(() -> I18nUtils.tr(key, localeFile)).thenCallRealMethod();
             mocked.when(() -> I18nUtils.tr(key, localeFile, params)).thenCallRealMethod();
 
@@ -98,10 +95,9 @@ public class I18nUtilTest {
         );
 
         try (MockedStatic<I18nUtils> mocked = Mockito.mockStatic(I18nUtils.class)) {
-            mocked.when(() -> I18nUtils.getValueFromYAMLFile(LocaleLanguage.EN, localeFile))
-                .thenReturn(mockYAMLData);
-
             mocked.when(I18nUtils::getCurrentLanguage).thenCallRealMethod();
+            mocked.when(() -> I18nUtils.getValueFromYAMLFile(I18nUtils.getCurrentLanguage(), localeFile))
+                .thenReturn(mockYAMLData);
             mocked.when(() -> I18nUtils.tr(key, localeFile)).thenCallRealMethod();
 
             // Act
@@ -109,7 +105,7 @@ public class I18nUtilTest {
 
             // Assert
             Assertions.assertEquals("Hello, welcome!", result);
-            Assertions.assertEquals(LocaleLanguage.EN, I18nUtils.getCurrentLanguage());
+            Assertions.assertEquals(LocaleLanguage.VI, I18nUtils.getCurrentLanguage());
         }
     }
 }

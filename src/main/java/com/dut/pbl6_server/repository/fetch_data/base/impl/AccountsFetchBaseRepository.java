@@ -44,15 +44,40 @@ public class AccountsFetchBaseRepository implements FetchBaseRepository<Account>
                 SELECT a
                 FROM Account a
                 LEFT JOIN FETCH a.avatarFile
-                LEFT JOIN FETCH a.followers af
-                LEFT JOIN FETCH af.user.avatarFile
-                LEFT JOIN FETCH af.follower aff
-                LEFT JOIN FETCH aff.avatarFile
                 """,
             "a",
             sort,
             pageable
         );
+
+        // Fetch 'followers' relation
+        var followers = em.createQuery(
+                """
+                    SELECT fu
+                    FROM Follower fu
+                    LEFT JOIN FETCH fu.follower fuf
+                    LEFT JOIN FETCH fuf.avatarFile
+                    LEFT JOIN FETCH fu.user fuu
+                    LEFT JOIN FETCH fuu.avatarFile
+                    WHERE
+                            fu.deletedAt IS NULL
+                        AND fuf.deletedAt IS NULL
+                        AND fuf.status = 'ACTIVE'
+                        AND fuu IN :values
+                        AND fuu.deletedAt IS NULL
+                        AND fuu.status = 'ACTIVE'
+                    """,
+                Follower.class)
+            .setParameter("values", values)
+            .getResultList();
+
+        values = values.stream().peek(
+            v -> v.setFollowers(
+                followers.stream().filter(
+                    tmp -> tmp.getUser().getId().equals(v.getId())
+                ).toList()
+            )
+        ).toList();
 
         // Fetch 'followingUsers' relation
         var followingUsers = em.createQuery(
@@ -63,7 +88,13 @@ public class AccountsFetchBaseRepository implements FetchBaseRepository<Account>
                     LEFT JOIN FETCH fuf.avatarFile
                     LEFT JOIN FETCH fu.user fuu
                     LEFT JOIN FETCH fuu.avatarFile
-                    WHERE fu.follower IN :values
+                    WHERE
+                            fu.deletedAt IS NULL
+                        AND fuf IN :values
+                        AND fuf.deletedAt IS NULL
+                        AND fuf.status = 'ACTIVE'
+                        AND fuu.deletedAt IS NULL
+                        AND fuu.status = 'ACTIVE'
                     """,
                 Follower.class)
             .setParameter("values", values)

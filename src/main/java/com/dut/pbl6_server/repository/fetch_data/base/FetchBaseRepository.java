@@ -35,9 +35,12 @@ public interface FetchBaseRepository<T> {
     default Long countData(List<WhereElement> whereElements) {
         String countResultHql = String.format("SELECT COUNT(tmp) FROM %s tmp %s", getEntityName(), getWhereClause(whereElements, "tmp"));
         var countResultQuery = getEntityManager().createQuery(countResultHql, Long.class);
-        if (whereElements != null)
-            for (int i = 0; i < whereElements.size(); i++)
-                countResultQuery.setParameter(i + 1, whereElements.get(i).getValue());
+        if (whereElements != null) {
+            int count = 1;
+            for (WhereElement e : whereElements)
+                if (!e.getOperator().isNotNeedParamType())
+                    countResultQuery.setParameter(count++, e.getValue());
+        }
 
         return countResultQuery.getSingleResult();
     }

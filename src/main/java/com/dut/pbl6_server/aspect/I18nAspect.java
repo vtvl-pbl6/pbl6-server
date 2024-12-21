@@ -11,7 +11,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Aspect
 @Component
 public class I18nAspect {
-    @Pointcut("execution(* com.dut.pbl6_server.controller.*.*(..))")
+    @Pointcut("execution(* com.dut.pbl6_server.controller..*.*(..))")
     public void controllers() {
     }
 

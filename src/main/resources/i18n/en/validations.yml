@@ -39,3 +39,29 @@ register_request:
     size:
       code: VAL_RES105
       message: Username must be longer than 5 characters
+
+# Change password request
+change_password_request:
+  old_password:
+    password_validation:
+      code: VAL_CHP0101
+      message: Current password is required. It must be between 8 and 32 characters, containing at least 1 uppercase letter, 1 lowercase letter, 1 numeric character.
+  new_password:
+    password_validation:
+      code: VAL_CHP0102
+      message: New password is required. It must be between 8 and 32 characters, containing at least 1 uppercase letter, 1 lowercase letter, 1 numeric character.
+  confirm_password:
+    password_validation:
+      code: VAL_CHP0103
+      message: Confirm password is required. It must be between 8 and 32 characters, containing at least 1 uppercase letter, 1 lowercase letter, 1 numeric character.
+
+# Notification request
+notification_request:
+  receiver_id:
+    not_null:
+      code: VAL_NOT0101
+      message: Receiver ID cannot be null
+  content:
+    not_blank_string_validation:
+      code: VAL_NOT0102
+      message: Content cannot be blank

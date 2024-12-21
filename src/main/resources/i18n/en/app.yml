@@ -1,1 +1,12 @@
 # Notification
+notification:
+  follow: "<strong>{0}</strong> <i18n>has started following you</i18n>"  # {0} is the display name of the follower
+  comment: "<strong>{0}</strong> <i18n>commented on your post</i18n>{1}"  # {0} is the display name of the commenter, {1} is the comment
+  request_thread_moderation: "<strong>{0}</strong> <i18n>has requested your review for the post</i18n>{1}\nReason: {2}"  # {0} is the display name of the requester, {1} is the post, {2} is the reason
+  request_thread_moderation_failed: "<i18n>Your post moderation has failed</i18n>{0}"  # {0} is the post title or description
+  request_thread_moderation_success: "<i18n>Your post has been successfully moderated</i18n>{0}"  # {0} is the post title or description
+  share: "<strong>{0}</strong> <i18n>shared your post</i18n>{1}"  # {0} is the display name of the sharer, {1} is the post
+  activate_account: "<i18n>Your account has been activated by the administrator</i18n>"
+  deactivate_account: "<i18n>Your account has been deactivated by the administrator</i18n>"
+  lock_thread: "<i18n>Your post has been locked due to a violation of community guidelines</i18n>{0}" # {0} is the post
+  unlock_thread: "<i18n>Your post has been unlocked</i18n>{0}" # {0} is the post

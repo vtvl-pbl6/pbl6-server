@@ -7,6 +7,7 @@ import com.dut.pbl6_server.common.exception.ForbiddenException;
 import com.dut.pbl6_server.common.exception.InternalServerException;
 import com.dut.pbl6_server.common.util.CommonUtils;
 import com.dut.pbl6_server.config.auth.JwtUtils;
+import com.dut.pbl6_server.dto.request.ChangePasswordRequest;
 import com.dut.pbl6_server.dto.request.LoginRequest;
 import com.dut.pbl6_server.dto.request.RefreshTokenRequest;
 import com.dut.pbl6_server.dto.request.RegisterRequest;
@@ -132,4 +133,21 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Override
+    public void changePassword(Account account, ChangePasswordRequest request) {
+        // Check if the old password is correct
+        if (!passwordEncoder.matches(request.getOldPassword(), account.getPassword()))
+            throw new BadRequestException(ErrorMessageConstants.INCORRECT_OLD_PASSWORD);
+
+        // Check if the new password is the same as the old password
+        if (passwordEncoder.matches(request.getNewPassword(), account.getPassword()))
+            throw new BadRequestException(ErrorMessageConstants.NEW_PASSWORD_MUST_BE_DIFFERENT);
+
+        // Check if the new password is the same as the confirmation password
+        if (!request.getConfirmPassword().equals(request.getNewPassword()))
+            throw new BadRequestException(ErrorMessageConstants.CONFIRM_PASSWORD_NOT_MATCHING);
+
+        account.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        accountsRepository.save(account);
+    }
 }

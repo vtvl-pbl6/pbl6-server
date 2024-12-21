@@ -5,6 +5,7 @@ import com.dut.pbl6_server.common.model.AbstractDTO;
 import com.dut.pbl6_server.entity.File;
 import com.dut.pbl6_server.entity.enums.ThreadStatus;
 import com.dut.pbl6_server.entity.enums.Visibility;
+import com.dut.pbl6_server.entity.json.HosResult;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,10 +26,15 @@ public class ThreadResponse extends AbstractDTO {
     private String content;
     private int reactionNum;
     private int sharedNum;
+    private int commentNum;
     private boolean isPin;
     private ThreadStatus status;
     private Visibility visibility;
     private List<File> files;
     private List<AccountResponse> sharers;
+    private List<AccountResponse> reactUsers;
     private List<ThreadResponse> comments;
+    private NotificationResponse requestModeration;
+    private NotificationResponse responseModeration;
+    private List<HosResult> hosResults;
 }
